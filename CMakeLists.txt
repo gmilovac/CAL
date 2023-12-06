@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # Sets project name
-project(cs1230_final_project LANGUAGES CXX C)
+project(CAL LANGUAGES CXX C)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
@@ -34,6 +34,8 @@ add_executable(${PROJECT_NAME}
   src/settings.h src/settings.cpp
   src/rgba.h
   src/filters/filterblur.cpp src/filters/filterchroma.cpp src/filters/filteredge.cpp src/filters/filtergray.cpp src/filters/filtermedian.cpp src/filters/filterscale.cpp src/filters/filterutils.cpp src/filters/filterutils.h
+
+
 )
 
 # Specifies other files

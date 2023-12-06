@@ -1,0 +1,9 @@
+C:/Users/Marcus/Documents/CS1230/Projects/CAL/CMakeFiles/CAL.dir
+C:/Users/Marcus/Documents/CS1230/Projects/CAL/CMakeFiles/CAL_other_files.dir
+C:/Users/Marcus/Documents/CS1230/Projects/CAL/CMakeFiles/StaticGLEW.dir
+C:/Users/Marcus/Documents/CS1230/Projects/CAL/CMakeFiles/edit_cache.dir
+C:/Users/Marcus/Documents/CS1230/Projects/CAL/CMakeFiles/rebuild_cache.dir
+C:/Users/Marcus/Documents/CS1230/Projects/CAL/CMakeFiles/CAL_autogen_timestamp_deps.dir
+C:/Users/Marcus/Documents/CS1230/Projects/CAL/CMakeFiles/CAL_autogen.dir
+C:/Users/Marcus/Documents/CS1230/Projects/CAL/CMakeFiles/StaticGLEW_autogen_timestamp_deps.dir
+C:/Users/Marcus/Documents/CS1230/Projects/CAL/CMakeFiles/StaticGLEW_autogen.dir

@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="resources/shader/vertex.vert">C:/Users/Marcus/Documents/CS1230/Projects/CAL/resources/shader/vertex.vert</file>
+    <file alias="resources/shader/fragment.frag">C:/Users/Marcus/Documents/CS1230/Projects/CAL/resources/shader/fragment.frag</file>
+  </qresource>
+</RCC>
+
