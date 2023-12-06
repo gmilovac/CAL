@@ -1,9 +1,0 @@
-C:/Users/Marcus/Documents/CS1230/Projects/CS1230-Final-Project/build/CMakeFiles/cs1230_final_project.dir
-C:/Users/Marcus/Documents/CS1230/Projects/CS1230-Final-Project/build/CMakeFiles/cs1230_final_project_other_files.dir
-C:/Users/Marcus/Documents/CS1230/Projects/CS1230-Final-Project/build/CMakeFiles/StaticGLEW.dir
-C:/Users/Marcus/Documents/CS1230/Projects/CS1230-Final-Project/build/CMakeFiles/edit_cache.dir
-C:/Users/Marcus/Documents/CS1230/Projects/CS1230-Final-Project/build/CMakeFiles/rebuild_cache.dir
-C:/Users/Marcus/Documents/CS1230/Projects/CS1230-Final-Project/build/CMakeFiles/cs1230_final_project_autogen_timestamp_deps.dir
-C:/Users/Marcus/Documents/CS1230/Projects/CS1230-Final-Project/build/CMakeFiles/cs1230_final_project_autogen.dir
-C:/Users/Marcus/Documents/CS1230/Projects/CS1230-Final-Project/build/CMakeFiles/StaticGLEW_autogen_timestamp_deps.dir
-C:/Users/Marcus/Documents/CS1230/Projects/CS1230-Final-Project/build/CMakeFiles/StaticGLEW_autogen.dir
