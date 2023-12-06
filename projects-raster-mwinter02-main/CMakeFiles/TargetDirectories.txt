@@ -1,0 +1,5 @@
+C:/Users/Marcus/Documents/CS1230/Projects/projects-raster-mwinter02/CMakeFiles/projects_raster.dir
+C:/Users/Marcus/Documents/CS1230/Projects/projects-raster-mwinter02/CMakeFiles/edit_cache.dir
+C:/Users/Marcus/Documents/CS1230/Projects/projects-raster-mwinter02/CMakeFiles/rebuild_cache.dir
+C:/Users/Marcus/Documents/CS1230/Projects/projects-raster-mwinter02/CMakeFiles/projects_raster_autogen_timestamp_deps.dir
+C:/Users/Marcus/Documents/CS1230/Projects/projects-raster-mwinter02/CMakeFiles/projects_raster_autogen.dir
