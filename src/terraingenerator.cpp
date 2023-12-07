@@ -45,14 +45,16 @@ void addPointToVector(glm::vec3 point, std::vector<float>& vector) {
 
 // Generates the geometry of the output triangle mesh
 std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canvas) {
+    m_canvas = canvas;
     std::vector<float> verts;
     m_resolution = 512; //int(sqrt(flat.size()));
     verts.reserve(m_resolution * m_resolution * 6);
 
     for(int x = 0; x < m_resolution; x++) {
         for(int y = 0; y < m_resolution; y++) {
-        int xp = (m_resolution-1) - x; // flips horizontally - images coming out mirrored
-            int pixel = xp+y*m_resolution;
+        int row = y;
+        int col = (m_resolution-1) - x; // flips horizontally - images coming out mirrored before
+            int pixel = col+row*m_resolution;
             glm::vec4 color = canvas[pixel];//glm::vec4(1.f,0.f,0.f,1.f);//flat[pixel];
             int x1 = x;
             int y1 = y;
@@ -128,7 +130,12 @@ glm::vec3 TerrainGenerator::getPosition(int row, int col) {
     // makes scaling independent of sampling resolution.
     float x = 1.0 * row / m_resolution;
     float y = 1.0 * col / m_resolution;
-    float z = 0;//getHeight(x, y);
+    int y0 = m_resolution - 1 - row;
+    int x0 = col; //(m_resolution-1) - col; // flips horizontally - images coming out mirrored before
+    int pixel = x0+y0*m_resolution;
+    pixel = std::clamp(pixel,0,int(m_canvas.size())-1);
+    //std::cout << m_canvas[pixel].x;
+    float z = 0;// m_canvas[pixel].x;//0.1f*m_canvas[pixel].x - 0.2f*m_canvas[pixel].z;//getHeight(x, y);
     return glm::vec3(x,y,z);
 }
 

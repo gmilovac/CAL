@@ -20,6 +20,7 @@ private:
     std::vector<glm::vec2> m_randVecLookup;
     int m_resolution;
     int m_lookupSize;
+    std::vector<glm::vec4> m_canvas;
 
     // Samples the (infinite) random vector grid at (row, col)
     glm::vec2 sampleRandomVector(int row, int col);

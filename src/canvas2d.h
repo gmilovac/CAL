@@ -24,6 +24,7 @@ public:
     bool saveImageToFile(const QString &file);
     void displayImage();
     void resize(int w, int h);
+
     std::vector<glm::vec4> getCanvasData();
 
     // This will be called when the settings have changed
@@ -35,6 +36,8 @@ public:
 private:
     std::vector<RGBA> m_data;
     std::vector<RGBA> smudgeMask;
+    void fill(RGBA col, int x, int y);
+    bool rgbEquals(RGBA a, RGBA b);
 
     bool m_isDown;
     void editCanvas(int x, int y);

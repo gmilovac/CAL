@@ -148,9 +148,46 @@ void Canvas2D::mouseDown(int x, int y) {
     if (BrushType(settings.brushType) == BRUSH_SMUDGE) {
         captureSmudge(getMask(x,y));
     }
+    else if (BrushType(settings.brushType) == BRUSH_FILL) {
+        fill(m_data[posToIndex(x,y)], x, y);
+    }
+    if (BrushType(settings.brushType) != BRUSH_FILL) {
     m_isDown=true;
     editCanvas(x,y);
+    }
     displayImage();
+}
+
+void Canvas2D::fill(RGBA col, int x, int y) {
+    m_data[posToIndex(x,y)] = settings.brushColor;
+
+    for (int i=0; i<3; i++) {
+    for (int j=0; j<3; j++) {
+        if (!(i== 1 && j==1)) {
+            int dx = x - 1 + i;
+            int dy = y - 1 + j;
+
+            std::clamp(dx,0,m_width-1);
+            std::clamp(dy,0,m_height-1);
+            if ( rgbEquals(m_data[posToIndex(dx,dy)],col) ) {
+                m_data[posToIndex(dx,dy)] = settings.brushColor;
+                //m_data[posToIndex(x,dy)] = settings.brushColor;
+                //fill(col,dx,dy);
+            }
+        }
+    }
+    }
+}
+
+bool Canvas2D::rgbEquals(RGBA a, RGBA b) {
+    if (a.r == b.r) {
+        if (a.g == b.g) {
+            if (a.b == b.b) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 //mouse dragged command, updates canvas and edits
