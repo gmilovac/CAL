@@ -9,6 +9,7 @@
 #include <QScrollArea>
 #include <QCheckBox>
 #include <iostream>
+#include <QButtonGroup>
 
 
 
@@ -54,31 +55,38 @@ MainWindow::MainWindow()
     controlsScroll->setWidget(tabs);
     controlsScroll->setWidgetResizable(true);
 
-    tabs->addTab(brushGroup, "     Terrain Painter     ");
+    tabs->addTab(brushGroup, "      Terrain Painter     ");
     //tabs->addTab(filterGroup, "Filter");
 
     vLayout->addWidget(controlsScroll);
 
     // brush selection
     addHeading(brushLayout, "Brush");
-    addRadioButton(brushLayout, "Constant", settings.brushType == BRUSH_CONSTANT, [this]{ setBrushType(BRUSH_CONSTANT); });
-    addRadioButton(brushLayout, "Linear", settings.brushType == BRUSH_LINEAR, [this]{ setBrushType(BRUSH_LINEAR); });
-    addRadioButton(brushLayout, "Quadratic", settings.brushType == BRUSH_QUADRATIC, [this]{ setBrushType(BRUSH_QUADRATIC); });
-    addRadioButton(brushLayout, "Fill", settings.brushType == BRUSH_FILL, [this]{setBrushType(BRUSH_FILL); });
+    QButtonGroup *brushButtons = new QButtonGroup();
+    QButtonGroup *biomeColors = new QButtonGroup();
+
+    addRadioButton(brushButtons, brushLayout, "Constant", settings.brushType == BRUSH_CONSTANT, [this]{ setBrushType(BRUSH_CONSTANT); });
+    //addRadioButton(brushButtons, brushLayout, "Linear", settings.brushType == BRUSH_LINEAR, [this]{ setBrushType(BRUSH_LINEAR); });
+    //addRadioButton(brushButtons, brushLayout, "Quadratic", settings.brushType == BRUSH_QUADRATIC, [this]{ setBrushType(BRUSH_QUADRATIC); });
+    addRadioButton(brushButtons, brushLayout, "Fill", settings.brushType == BRUSH_FILL, [this]{setBrushType(BRUSH_FILL); });
+    addSpinBox(brushLayout, "radius", 0, 100, 1, settings.brushRadius, [this](int value){ setIntVal(settings.brushRadius, value); });
     //addRadioButton(brushLayout, "Smudge", settings.brushType == BRUSH_SMUDGE, [this]{ setBrushType(BRUSH_SMUDGE); });
 
+    addHeading(brushLayout, "Biomes");
     // Biome colors:
 
-    addRadioButton(brushLayout, "Forest", rgbEquals(settings.brushColor,FOREST_COLOR), [this]{setBrushColor(FOREST_COLOR); });
-    addRadioButton(brushLayout, "Grassland", rgbEquals(settings.brushColor,GRASSLAND_COLOR), [this]{setBrushColor(GRASSLAND_COLOR); });
-    addRadioButton(brushLayout, "Mountain", rgbEquals(settings.brushColor,MOUNTAINS_COLOR), [this]{setBrushColor(MOUNTAINS_COLOR); });
-    addRadioButton(brushLayout, "Desert", rgbEquals(settings.brushColor,DESERT_COLOR), [this]{setBrushColor(DESERT_COLOR); });
+    addRadioButton(biomeColors, brushLayout, "Forest", rgbEquals(settings.brushColor,FOREST_COLOR), [this]{setBrushColor(FOREST_COLOR); });
+    addRadioButton(biomeColors, brushLayout, "Grassland", rgbEquals(settings.brushColor,GRASSLAND_COLOR), [this]{setBrushColor(GRASSLAND_COLOR); });
+    addRadioButton(biomeColors, brushLayout, "Mountain", rgbEquals(settings.brushColor,MOUNTAINS_COLOR), [this]{setBrushColor(MOUNTAINS_COLOR); });
+    addRadioButton(biomeColors, brushLayout, "Desert", rgbEquals(settings.brushColor,DESERT_COLOR), [this]{setBrushColor(DESERT_COLOR); });
+    addRadioButton(biomeColors, brushLayout, "Ocean", rgbEquals(settings.brushColor,OCEAN_COLOR), [this]{setBrushColor(OCEAN_COLOR); });
+    addRadioButton(biomeColors, brushLayout, "Lake", rgbEquals(settings.brushColor,LAKE_COLOR), [this]{setBrushColor(LAKE_COLOR); });
     // brush parameters
-    addSpinBox(brushLayout, "red", 0, 255, 1, settings.brushColor.r, [this](int value){ setUIntVal(settings.brushColor.r, value); });
-    addSpinBox(brushLayout, "green", 0, 255, 1, settings.brushColor.g, [this](int value){ setUIntVal(settings.brushColor.g, value); });
-    addSpinBox(brushLayout, "blue", 0, 255, 1, settings.brushColor.b, [this](int value){ setUIntVal(settings.brushColor.b, value); });
-    addSpinBox(brushLayout, "alpha", 0, 255, 1, settings.brushColor.a, [this](int value){ setUIntVal(settings.brushColor.a, value); });
-    addSpinBox(brushLayout, "radius", 0, 100, 1, settings.brushRadius, [this](int value){ setIntVal(settings.brushRadius, value); });
+    //addSpinBox(brushLayout, "red", 0, 255, 1, settings.brushColor.r, [this](int value){ setUIntVal(settings.brushColor.r, value); });
+    //addSpinBox(brushLayout, "green", 0, 255, 1, settings.brushColor.g, [this](int value){ setUIntVal(settings.brushColor.g, value); });
+    //addSpinBox(brushLayout, "blue", 0, 255, 1, settings.brushColor.b, [this](int value){ setUIntVal(settings.brushColor.b, value); });
+    //addSpinBox(brushLayout, "alpha", 0, 255, 1, settings.brushColor.a, [this](int value){ setUIntVal(settings.brushColor.a, value); });
+
 
     addPushButton(brushLayout, "Generate Terrain", &MainWindow::onGenerateTerrainButtonClick);
 
@@ -88,7 +96,7 @@ MainWindow::MainWindow()
 
     addPushButton(brushLayout, "Load Image", &MainWindow::onUploadButtonClick);
 
-    addPushButton(brushLayout, "Show terrain", &MainWindow::onFilterButtonClick);
+    //addPushButton(brushLayout, "Show terrain", &MainWindow::onFilterButtonClick);
 
 }
 
@@ -121,9 +129,13 @@ void MainWindow::addLabel(QBoxLayout *layout, QString text) {
     layout->addWidget(new QLabel(text));
 }
 
-void MainWindow::addRadioButton(QBoxLayout *layout, QString text, bool value, auto function) {
+void MainWindow::addRadioButton(QButtonGroup *group, QBoxLayout *layout, QString text, bool value, auto function) {
+
     QRadioButton *button = new QRadioButton(text);
+    group->addButton(button);
+    //button->setAutoExclusive(false);
     button->setChecked(value);
+    //button->setAutoExclusive(true);
     layout->addWidget(button);
     connect(button, &QRadioButton::clicked, this, function);
 }

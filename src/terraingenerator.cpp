@@ -56,6 +56,9 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
         int col = (m_resolution-1) - x; // flips horizontally - images coming out mirrored before
             int pixel = col+row*m_resolution;
             glm::vec4 color = canvas[pixel];//glm::vec4(1.f,0.f,0.f,1.f);//flat[pixel];
+            if (color.x==1.f && color.y==1.f && color.z==1.f) {
+                continue;
+            }
             int x1 = x;
             int y1 = y;
 

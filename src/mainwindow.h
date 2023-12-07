@@ -32,7 +32,7 @@ private:
 
     void addHeading(QBoxLayout *layout, QString text);
     void addLabel(QBoxLayout *layout, QString text);
-    void addRadioButton(QBoxLayout *layout, QString text, bool value, auto function);
+    void addRadioButton(QButtonGroup *group, QBoxLayout *layout, QString text, bool value, auto function);
     void addSpinBox(QBoxLayout *layout, QString text, int min, int max, int step, int val, auto function);
     void addDoubleSpinBox(QBoxLayout *layout, QString text, double min, double max, double step, double val, int decimal, auto function);
     void addPushButton(QBoxLayout *layout, QString text, auto function);
@@ -40,10 +40,14 @@ private:
 
 
     /// =========== Color Constants ==================
-    static constexpr RGBA FOREST_COLOR = RGBA{0,160,0,255};
+    static constexpr RGBA FOREST_COLOR = RGBA{0,80,5,255};
     static constexpr RGBA GRASSLAND_COLOR = RGBA{0,210,0,255};
     static constexpr RGBA MOUNTAINS_COLOR = RGBA{120,120,120,255};
     static constexpr RGBA DESERT_COLOR = RGBA{240,180,0,255};
+    static constexpr RGBA OCEAN_COLOR = RGBA{0,0,180,255};
+    static constexpr RGBA LAKE_COLOR = RGBA{0,100,255,255};
+
+
 
 private slots:
     void setBrushType(int type);
