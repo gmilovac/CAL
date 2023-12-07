@@ -6,6 +6,7 @@
 #include <QOpenGLBuffer>
 #include "terraingenerator.h"
 #include <QMatrix4x4>
+#include "rgba.h"
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
@@ -14,6 +15,8 @@ class GLWidget : public QOpenGLWidget
 public:
     GLWidget(QWidget *parent = nullptr);
     ~GLWidget();
+    void renderTerrain(std::vector<glm::vec4> canvas);
+    glm::vec4 m_col = glm::vec4(1.f,0.f,0.f,1.f);
 
 protected:
     void initializeGL() override;
@@ -26,6 +29,12 @@ protected:
 private:
     void rebuildMatrices();
 
+    // ==== Canvas Variables =======
+    std::vector<glm::vec4> m_canvasData;
+    int m_canvasWidth;
+    int m_canvasHeight;
+    // =============================
+
     int m_xRot = 0;
     int m_yRot = 0;
     int m_zRot = 0;
@@ -36,6 +45,8 @@ private:
     QMatrix4x4 m_camera;
     QMatrix4x4 m_world;
     TerrainGenerator m_terrain;
+
+
     int m_projMatrixLoc = 0;
     int m_mvMatrixLoc = 0;
 

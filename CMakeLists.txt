@@ -47,6 +47,7 @@ add_executable(${PROJECT_NAME}
         src/filters/filterblur.cpp
         src/filters/filterutils.cpp
         src/filters/filterutils.h
+        src/terrainwindow.h src/terrainwindow.cpp
 )
 
 # Specifies other files

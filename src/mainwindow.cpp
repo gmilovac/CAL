@@ -10,20 +10,13 @@
 #include <QCheckBox>
 #include <iostream>
 
-//MainWindow::MainWindow()
-//{
-//    glWidget = new GLWidget;
-//
-//    QHBoxLayout *container = new QHBoxLayout;
-//    container->addWidget(glWidget);
-//    this->setLayout(container);
-//}
+
 
 MainWindow::~MainWindow() {}
 
 MainWindow::MainWindow()
 {
-    setWindowTitle("2D Projects: Brush and Filter");
+    setWindowTitle("Terrain Painter");
 
     // loads in settings from last run or uses default values
     settings.loadSettingsOrDefaults();
@@ -61,8 +54,8 @@ MainWindow::MainWindow()
     controlsScroll->setWidget(tabs);
     controlsScroll->setWidgetResizable(true);
 
-    tabs->addTab(brushGroup, "Brush");
-    tabs->addTab(filterGroup, "Filter");
+    tabs->addTab(brushGroup, "     Terrain Painter     ");
+    //tabs->addTab(filterGroup, "Filter");
 
     vLayout->addWidget(controlsScroll);
 
@@ -71,7 +64,7 @@ MainWindow::MainWindow()
     addRadioButton(brushLayout, "Constant", settings.brushType == BRUSH_CONSTANT, [this]{ setBrushType(BRUSH_CONSTANT); });
     addRadioButton(brushLayout, "Linear", settings.brushType == BRUSH_LINEAR, [this]{ setBrushType(BRUSH_LINEAR); });
     addRadioButton(brushLayout, "Quadratic", settings.brushType == BRUSH_QUADRATIC, [this]{ setBrushType(BRUSH_QUADRATIC); });
-    addRadioButton(brushLayout, "Smudge", settings.brushType == BRUSH_SMUDGE, [this]{ setBrushType(BRUSH_SMUDGE); });
+    //addRadioButton(brushLayout, "Smudge", settings.brushType == BRUSH_SMUDGE, [this]{ setBrushType(BRUSH_SMUDGE); });
 
     // brush parameters
     addSpinBox(brushLayout, "red", 0, 255, 1, settings.brushColor.r, [this](int value){ setUIntVal(settings.brushColor.r, value); });
@@ -80,58 +73,16 @@ MainWindow::MainWindow()
     addSpinBox(brushLayout, "alpha", 0, 255, 1, settings.brushColor.a, [this](int value){ setUIntVal(settings.brushColor.a, value); });
     addSpinBox(brushLayout, "radius", 0, 100, 1, settings.brushRadius, [this](int value){ setIntVal(settings.brushRadius, value); });
 
-    // extra credit brushes
-    addHeading(brushLayout, "Extra Credit Brushes");
-    addRadioButton(brushLayout, "Spray", settings.brushType == BRUSH_SPRAY, [this]{ setBrushType(BRUSH_SPRAY); });
-    addSpinBox(brushLayout, "density", 0, 100, 1, settings.brushDensity, [this](int value){ setIntVal(settings.brushDensity, value); });
-    addRadioButton(brushLayout, "Speed", settings.brushType == BRUSH_SPEED, [this]{ setBrushType(BRUSH_SPEED); });
-    addRadioButton(brushLayout, "Fill", settings.brushType == BRUSH_FILL, [this]{ setBrushType(BRUSH_FILL); });
-    addRadioButton(brushLayout, "Custom", settings.brushType == BRUSH_CUSTOM, [this]{ setBrushType(BRUSH_CUSTOM); });
-    addCheckBox(brushLayout, "Fix alpha blending", settings.fixAlphaBlending, [this](bool value){ setBoolVal(settings.fixAlphaBlending, value); });
+    addPushButton(brushLayout, "Generate Terrain", &MainWindow::onGenerateTerrainButtonClick);
 
-    // clearing canvas
     addPushButton(brushLayout, "Clear canvas", &MainWindow::onClearButtonClick);
 
-    // save canvas as image
     addPushButton(brushLayout, "Save Image", &MainWindow::onSaveButtonClick);
 
-    // filters
-    addHeading(filterLayout, "Filter");
-    addRadioButton(filterLayout, "Edge detect", settings.filterType == FILTER_EDGE_DETECT,  [this]{ setFilterType(FILTER_EDGE_DETECT); });
-    addDoubleSpinBox(filterLayout, "sensitivity", 0.01, 1, 0.01, settings.edgeDetectSensitivity, 2, [this](float value){ setFloatVal(settings.edgeDetectSensitivity, value); });
+    addPushButton(brushLayout, "Load Image", &MainWindow::onUploadButtonClick);
 
-    addRadioButton(filterLayout, "Blur", settings.filterType == FILTER_BLUR, [this]{ setFilterType(FILTER_BLUR); });
-    addSpinBox(filterLayout, "radius", 0, 100, 1, settings.blurRadius, [this](int value){ setIntVal(settings.blurRadius, value); });
+    addPushButton(brushLayout, "Show terrain", &MainWindow::onFilterButtonClick);
 
-    addRadioButton(filterLayout, "Scale", settings.filterType == FILTER_SCALE, [this]{ setFilterType(FILTER_SCALE); });
-    addDoubleSpinBox(filterLayout, "x", 0.1, 10, 0.1, settings.scaleX, 2, [this](float value){ setFloatVal(settings.scaleX, value); });
-    addDoubleSpinBox(filterLayout, "y", 0.1, 10, 0.1, settings.scaleY, 2, [this](float value){ setFloatVal(settings.scaleY, value); });
-
-    // extra credit filters
-    addHeading(filterLayout, "Extra Credit Filters");
-    addRadioButton(filterLayout, "Median", settings.filterType == FILTER_MEDIAN,  [this]{ setFilterType(FILTER_MEDIAN); });
-    addSpinBox(filterLayout, "radius", 1, 100, 1, settings.medianRadius, [this](int value){ setIntVal(settings.medianRadius, value); });
-
-    addRadioButton(filterLayout, "Chromatic aberration", settings.filterType == FILTER_CHROMATIC,  [this]{ setFilterType(FILTER_CHROMATIC); });
-    addSpinBox(filterLayout, "red shift", -100, 100, 0, settings.rShift, [this](int value){ setIntVal(settings.rShift, value); });
-    addSpinBox(filterLayout, "green shift", -100, 100, 0, settings.gShift, [this](int value){ setIntVal(settings.gShift, value); });
-    addSpinBox(filterLayout, "blue shift", -100, 100, 0, settings.bShift, [this](int value){ setIntVal(settings.bShift, value); });
-
-    addRadioButton(filterLayout, "Tone mapping", settings.filterType == FILTER_MAPPING,  [this]{ setFilterType(FILTER_MAPPING); });
-    addCheckBox(filterLayout, "Non linear function", settings.nonLinearMap, [this](bool value){ setBoolVal(settings.nonLinearMap, value); });
-    addDoubleSpinBox(filterLayout, "gamma", 0.1, 2, 0.1, settings.gamma, 2, [this](float value){ setFloatVal(settings.gamma, value); });
-
-    addRadioButton(filterLayout, "Rotation", settings.filterType == FILTER_ROTATION,  [this]{ setFilterType(FILTER_ROTATION); });
-    addDoubleSpinBox(filterLayout, "angle", -360, 360, 0.1, settings.rotationAngle, 2, [this](float value){ setFloatVal(settings.rotationAngle, value); });
-
-    addRadioButton(filterLayout, "Bilteral smooth", settings.filterType == FILTER_BILATERAL,  [this]{ setFilterType(FILTER_BILATERAL); });
-    addSpinBox(filterLayout, "radius", 1, 100, 1, settings.bilateralRadius, [this](int value){ setIntVal(settings.bilateralRadius, value); });
-
-    // filter push buttons
-    addPushButton(filterLayout, "Load Image", &MainWindow::onUploadButtonClick);
-    addPushButton(filterLayout, "Apply Filter", &MainWindow::onFilterButtonClick);
-    addPushButton(filterLayout, "Revert Image", &MainWindow::onRevertButtonClick);
-    addPushButton(filterLayout, "Save Image", &MainWindow::onSaveButtonClick);
 }
 
 /**
@@ -249,13 +200,25 @@ void MainWindow::setBoolVal(bool &setValue, bool newValue) {
 
 // ------ PUSH BUTTON FUNCTIONS ------
 
+void MainWindow::onGenerateTerrainButtonClick() {
+   // glWidget->m_terrain.generateTerrain(false);
+    std::vector<glm::vec4> a = m_canvas->getCanvasData();
+
+    //glWidget->m_col = glm::vec4(1.f,1.f,0.f,1.f);
+    t.glWidget->renderTerrain(a);
+    t.resize(800,600);
+    t.show();
+}
+
 void MainWindow::onClearButtonClick() {
-    m_canvas->resize(m_canvas->parentWidget()->size().width(), m_canvas->parentWidget()->size().height());
+    //m_canvas->resize(m_canvas->parentWidget()->size().width(), m_canvas->parentWidget()->size().height());
     m_canvas->clearCanvas();
+
 }
 
 void MainWindow::onFilterButtonClick() {
-    m_canvas->filterImage();
+    t.resize(800,600);
+    t.show();
 }
 
 void MainWindow::onRevertButtonClick() {

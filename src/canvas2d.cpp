@@ -14,8 +14,8 @@
  */
 void Canvas2D::init() {
     setMouseTracking(true);
-    m_width = 500;
-    m_height = 500;
+    m_width = 512;
+    m_height = 512;
     clearCanvas();
 }
 
@@ -41,6 +41,7 @@ bool Canvas2D::loadImageFromFile(const QString &file) {
         std::cout<<"Failed to load in image"<<std::endl;
         return false;
     }
+    myImage = myImage.copy(0, 0, m_width, m_height); // Crops image to m_width x m_height from top left
     myImage = myImage.convertToFormat(QImage::Format_RGBX8888);
     m_width = myImage.width();
     m_height = myImage.height();
@@ -51,6 +52,10 @@ bool Canvas2D::loadImageFromFile(const QString &file) {
     for (int i = 0; i < arr.size() / 4.f; i++){
         m_data.push_back(RGBA{(std::uint8_t) arr[4*i], (std::uint8_t) arr[4*i+1], (std::uint8_t) arr[4*i+2], (std::uint8_t) arr[4*i+3]});
     }
+
+
+
+
     displayImage();
     return true;
 }
@@ -224,6 +229,18 @@ int Canvas2D::indexToX(int index) {
 
 int Canvas2D::indexToY(int index) {
     return floor(index/m_width);
+}
+
+std::vector<glm::vec4> Canvas2D::getCanvasData() {
+    std::vector<glm::vec4> d(m_data.size());
+   // d[0] = glm::vec4(1.f,1.f,0.f,1.f);
+    for (int i=0; i<m_data.size(); i++) {
+        d[i][0] = float(m_data[i].r/255.f);
+        d[i][1] = float(m_data[i].g/255.f);
+        d[i][2] = float(m_data[i].b/255.f);
+        d[i][3] = 1.f;
+    }
+    return d;
 }
 
 //Gets the alpha value for a given position depending on the mask in effect

@@ -5,7 +5,7 @@
 #ifndef CAL_CANVAS2D_H
 #define CAL_CANVAS2D_H
 
-
+#include "glm/glm.hpp"
 #include <QLabel>
 #include <QMouseEvent>
 #include <array>
@@ -24,6 +24,7 @@ public:
     bool saveImageToFile(const QString &file);
     void displayImage();
     void resize(int w, int h);
+    std::vector<glm::vec4> getCanvasData();
 
     // This will be called when the settings have changed
     void settingsChanged();

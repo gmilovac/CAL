@@ -12,6 +12,7 @@
 #include <QBoxLayout>
 
 #include "canvas2d.h"
+#include "terrainwindow.h"
 
 class MainWindow : public QWidget
 {
@@ -22,9 +23,10 @@ public:
     ~MainWindow();
 
 private:
-    GLWidget *glWidget;
+    //GLWidget *glWidget;
     void setupCanvas2D();
     Canvas2D *m_canvas;
+    TerrainWindow t;
 
     void addHeading(QBoxLayout *layout, QString text);
     void addLabel(QBoxLayout *layout, QString text);
@@ -48,4 +50,5 @@ private slots:
     void onRevertButtonClick();
     void onUploadButtonClick();
     void onSaveButtonClick();
+    void onGenerateTerrainButtonClick();
 };

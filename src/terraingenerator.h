@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "rgba.h"
 #include "glm/glm.hpp"
 
 class TerrainGenerator
@@ -11,7 +12,7 @@ public:
     TerrainGenerator();
     ~TerrainGenerator();
     int getResolution() { return m_resolution; };
-    std::vector<float> generateTerrain();
+    std::vector<float> generateTerrain(std::vector<glm::vec4> flat);
 
 private:
 

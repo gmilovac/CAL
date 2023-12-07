@@ -37,8 +37,11 @@ void GLWidget::initializeGL()
 
     m_terrainVao.create();
     m_terrainVao.bind();
+    std::vector<glm::vec4> h(1);
 
-    std::vector<GLfloat> verts = m_terrain.generateTerrain();
+    h[0] = m_col;
+
+    std::vector<GLfloat> verts = m_terrain.generateTerrain(m_canvasData);
 
     m_terrainVbo.create();
     m_terrainVbo.bind();
@@ -129,4 +132,34 @@ void GLWidget::rebuildMatrices() {
     m_proj.perspective(45.0f, 1.0 * width() / height(), 0.01f, 100.0f);
 
     update();
+}
+
+void GLWidget::renderTerrain(std::vector<glm::vec4> canvas) {
+    m_canvasData = canvas;
+    //m_col = glm::vec4(1.f,1.f,0.f,1.f);
+    //initializeGL();
+//    m_terrainVao.create();
+//    m_terrainVao.bind();
+//    std::vector<glm::vec4> h;
+
+//    std::vector<GLfloat> verts = m_terrain.generateTerrain(h);
+
+//    m_terrainVbo.create();
+//    m_terrainVbo.bind();
+//    m_terrainVbo.allocate(verts.data(),verts.size()*sizeof(GLfloat));
+
+//    glEnableVertexAttribArray(0);
+//    glEnableVertexAttribArray(1);
+//    glEnableVertexAttribArray(2);
+
+//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
+//                          nullptr);
+
+//    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
+//                          reinterpret_cast<void *>(3 * sizeof(GLfloat)));
+
+//    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
+//                          reinterpret_cast<void *>(6 * sizeof(GLfloat)));
+
+//    m_terrainVbo.release();
 }

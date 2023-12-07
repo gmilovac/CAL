@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include "glm/glm.hpp"
+#include "rgba.h"
 
 // Constructor
 TerrainGenerator::TerrainGenerator()
@@ -43,12 +44,16 @@ void addPointToVector(glm::vec3 point, std::vector<float>& vector) {
 }
 
 // Generates the geometry of the output triangle mesh
-std::vector<float> TerrainGenerator::generateTerrain() {
+std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canvas) {
     std::vector<float> verts;
+    m_resolution = 512; //int(sqrt(flat.size()));
     verts.reserve(m_resolution * m_resolution * 6);
 
     for(int x = 0; x < m_resolution; x++) {
         for(int y = 0; y < m_resolution; y++) {
+        int xp = (m_resolution-1) - x; // flips horizontally - images coming out mirrored
+            int pixel = xp+y*m_resolution;
+            glm::vec4 color = canvas[pixel];//glm::vec4(1.f,0.f,0.f,1.f);//flat[pixel];
             int x1 = x;
             int y1 = y;
 
@@ -58,7 +63,8 @@ std::vector<float> TerrainGenerator::generateTerrain() {
             glm::vec3 p1 = getPosition(x1,y1);
             glm::vec3 p2 = getPosition(x2,y1);
             glm::vec3 p3 = getPosition(x2,y2);
-            glm::vec3 p4 = getPosition(x1,y2);
+            glm::vec3 p4 = getPosition(x1,y2); // IN X,Z,Y format or (vec2 coordinate, height) format
+
 
             glm::vec3 n1 = getNormal(x1,y1);
             glm::vec3 n2 = getNormal(x2,y1);
@@ -71,15 +77,18 @@ std::vector<float> TerrainGenerator::generateTerrain() {
             // x2y2z3
             addPointToVector(p1, verts);
             addPointToVector(n1, verts);
-            addPointToVector(getColor(n1, p1), verts);
+            addPointToVector(glm::vec3(color), verts);
+            //addPointToVector(getColor(n1, p1), verts);
 
             addPointToVector(p2, verts);
             addPointToVector(n2, verts);
-            addPointToVector(getColor(n2, p2), verts);
+            addPointToVector(glm::vec3(color), verts);
+            //addPointToVector(getColor(n2, p2), verts);
 
             addPointToVector(p3, verts);
             addPointToVector(n3, verts);
-            addPointToVector(getColor(n3, p3), verts);
+            addPointToVector(glm::vec3(color), verts);
+            //addPointToVector(getColor(n3, p3), verts);
 
             // tris 2
             // x1y1z1
@@ -87,15 +96,18 @@ std::vector<float> TerrainGenerator::generateTerrain() {
             // x1y2z4
             addPointToVector(p1, verts);
             addPointToVector(n1, verts);
-            addPointToVector(getColor(n1, p1), verts);
+            addPointToVector(glm::vec3(color), verts);
+            //addPointToVector(getColor(n1, p1), verts);
 
             addPointToVector(p3, verts);
             addPointToVector(n3, verts);
-            addPointToVector(getColor(n3, p3), verts);
+            addPointToVector(glm::vec3(color), verts);
+            //addPointToVector(getColor(n3, p3), verts);
 
             addPointToVector(p4, verts);
             addPointToVector(n4, verts);
-            addPointToVector(getColor(n4, p4), verts);
+            addPointToVector(glm::vec3(color), verts);
+            //addPointToVector(getColor(n4, p4), verts);
         }
     }
     return verts;
@@ -116,7 +128,7 @@ glm::vec3 TerrainGenerator::getPosition(int row, int col) {
     // makes scaling independent of sampling resolution.
     float x = 1.0 * row / m_resolution;
     float y = 1.0 * col / m_resolution;
-    float z = getHeight(x, y);
+    float z = 0;//getHeight(x, y);
     return glm::vec3(x,y,z);
 }
 
