@@ -21,6 +21,8 @@ private:
     int m_resolution;
     int m_lookupSize;
     std::vector<glm::vec4> m_canvas;
+    std::vector<float> m_heightMap;
+    float getHeightMap(int x, int y);
 
     // Samples the (infinite) random vector grid at (row, col)
     glm::vec2 sampleRandomVector(int row, int col);

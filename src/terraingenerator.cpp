@@ -14,6 +14,7 @@ TerrainGenerator::TerrainGenerator()
 
   // Define resolution of terrain generation
   m_resolution = 512;
+  m_heightMap.reserve(m_resolution*m_resolution);
 
   // Generate random vector lookup table
   m_lookupSize = 1024;
@@ -50,20 +51,34 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
     m_resolution = 512; //int(sqrt(flat.size()));
     verts.reserve(m_resolution * m_resolution * 6);
 
+    for (int x = 0; x < m_resolution; x++) {
+    for (int y = 0; y < m_resolution; y++) {
+        int row = y;
+        int col = (m_resolution-1) - x; // flips horizontally - images coming out mirrored before
+        int pixel = col+row*m_resolution;
+        m_heightMap[x+y*m_resolution] = canvas[pixel].y;
+    }
+    }
+
     for(int x = 0; x < m_resolution; x++) {
         for(int y = 0; y < m_resolution; y++) {
+
         int row = y;
         int col = (m_resolution-1) - x; // flips horizontally - images coming out mirrored before
             int pixel = col+row*m_resolution;
+
             glm::vec4 color = canvas[pixel];//glm::vec4(1.f,0.f,0.f,1.f);//flat[pixel];
             if (color.x==1.f && color.y==1.f && color.z==1.f) {
                 continue;
             }
+
             int x1 = x;
             int y1 = y;
 
             int x2 = x + 1;
             int y2 = y + 1;
+
+
 
             glm::vec3 p1 = getPosition(x1,y1);
             glm::vec3 p2 = getPosition(x2,y1);
@@ -138,11 +153,15 @@ glm::vec3 TerrainGenerator::getPosition(int row, int col) {
     int pixel = x0+y0*m_resolution;
     pixel = std::clamp(pixel,0,int(m_canvas.size())-1);
     //std::cout << m_canvas[pixel].x;
-    float z = 0;// m_canvas[pixel].x;//0.1f*m_canvas[pixel].x - 0.2f*m_canvas[pixel].z;//getHeight(x, y);
+    float z = 0; //getHeightMap(row,col);// m_canvas[pixel].x;//0.1f*m_canvas[pixel].x - 0.2f*m_canvas[pixel].z;//getHeight(x, y);
     return glm::vec3(x,y,z);
 }
 
 // ================== Students, please focus on the code below this point
+
+float TerrainGenerator::getHeightMap(int x, int y) {
+    return m_heightMap[x+y*m_resolution];
+}
 
 float ease(float alpha) {
     return 3.f*pow(alpha,2) - 2.f*pow(alpha,3);
