@@ -37,7 +37,6 @@ private:
     std::vector<RGBA> m_data;
     std::vector<RGBA> smudgeMask;
     void fill(RGBA col, int x, int y, int depth);
-    void fillY(RGBA col, int x, int y, int depth);
     bool rgbEquals(RGBA a, RGBA b);
 
     bool m_isDown;

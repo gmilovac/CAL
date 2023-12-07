@@ -67,6 +67,12 @@ MainWindow::MainWindow()
     addRadioButton(brushLayout, "Fill", settings.brushType == BRUSH_FILL, [this]{setBrushType(BRUSH_FILL); });
     //addRadioButton(brushLayout, "Smudge", settings.brushType == BRUSH_SMUDGE, [this]{ setBrushType(BRUSH_SMUDGE); });
 
+    // Biome colors:
+
+    addRadioButton(brushLayout, "Forest", rgbEquals(settings.brushColor,FOREST_COLOR), [this]{setBrushColor(FOREST_COLOR); });
+    addRadioButton(brushLayout, "Grassland", rgbEquals(settings.brushColor,GRASSLAND_COLOR), [this]{setBrushColor(GRASSLAND_COLOR); });
+    addRadioButton(brushLayout, "Mountain", rgbEquals(settings.brushColor,MOUNTAINS_COLOR), [this]{setBrushColor(MOUNTAINS_COLOR); });
+    addRadioButton(brushLayout, "Desert", rgbEquals(settings.brushColor,DESERT_COLOR), [this]{setBrushColor(DESERT_COLOR); });
     // brush parameters
     addSpinBox(brushLayout, "red", 0, 255, 1, settings.brushColor.r, [this](int value){ setUIntVal(settings.brushColor.r, value); });
     addSpinBox(brushLayout, "green", 0, 255, 1, settings.brushColor.g, [this](int value){ setUIntVal(settings.brushColor.g, value); });
@@ -173,6 +179,12 @@ void MainWindow::setBrushType(int type) {
     m_canvas->settingsChanged();
 }
 
+void MainWindow::setBrushColor(RGBA color) {
+    settings.brushColor = color;
+    m_canvas->settingsChanged();
+}
+
+
 void MainWindow::setFilterType(int type) {
     settings.filterType = type;
     m_canvas->settingsChanged();
@@ -245,6 +257,17 @@ void MainWindow::onUploadButtonClick() {
     m_canvas->loadImageFromFile(settings.imagePath);
 
     m_canvas->settingsChanged();
+}
+
+bool MainWindow::rgbEquals(RGBA x, RGBA y) {
+    if (x.r == y.r) {
+        if (x.g == y.g) {
+            if (x.b == y.b) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void MainWindow::onSaveButtonClick() {
