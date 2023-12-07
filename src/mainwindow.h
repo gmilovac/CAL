@@ -26,7 +26,7 @@ private:
     //GLWidget *glWidget;
     void setupCanvas2D();
     Canvas2D *m_canvas;
-    TerrainWindow t;
+    TerrainWindow *m_terrainWindow;
 
     void addHeading(QBoxLayout *layout, QString text);
     void addLabel(QBoxLayout *layout, QString text);

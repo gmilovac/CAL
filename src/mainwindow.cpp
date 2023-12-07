@@ -206,9 +206,18 @@ void MainWindow::onGenerateTerrainButtonClick() {
     std::vector<glm::vec4> a = m_canvas->getCanvasData();
 
     //glWidget->m_col = glm::vec4(1.f,1.f,0.f,1.f);
-    t.glWidget->renderTerrain(a);
-    t.resize(800,600);
-    t.show();
+    // t = new TerrainWindow();
+    //m_terrainWindow.TerrainWindow();
+    //TerrainWindow t = new TerrainWindow();
+    //delete &m_terrainWindow;
+
+
+   // m_terrainWindow = t;
+    m_terrainWindow = new TerrainWindow();
+    m_terrainWindow->newWidget();
+    m_terrainWindow->glWidget->renderTerrain(a);
+    m_terrainWindow->resize(800,600);
+    m_terrainWindow->show();
 }
 
 void MainWindow::onClearButtonClick() {
@@ -218,8 +227,8 @@ void MainWindow::onClearButtonClick() {
 }
 
 void MainWindow::onFilterButtonClick() {
-    t.resize(800,600);
-    t.show();
+    m_terrainWindow->resize(800,600);
+    m_terrainWindow->show();
 }
 
 void MainWindow::onRevertButtonClick() {

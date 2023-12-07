@@ -19,6 +19,7 @@ class TerrainWindow : public QWidget
 
 public:
     TerrainWindow();
+    void newWidget();
     GLWidget *glWidget;
 
 

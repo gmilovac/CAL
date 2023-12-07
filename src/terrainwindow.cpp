@@ -21,10 +21,20 @@
 
 TerrainWindow::TerrainWindow()
 {
-    glWidget = new GLWidget();
+//    glWidget = new GLWidget();
 
-        QHBoxLayout *container = new QHBoxLayout;
-        container->addWidget(glWidget);
-        this->setLayout(container);
+//        QHBoxLayout *container = new QHBoxLayout;
+//        container->addWidget(glWidget);
+//        this->setLayout(container);
 
 }
+
+void TerrainWindow::newWidget() {
+        QHBoxLayout *container = new QHBoxLayout;
+
+        glWidget = new GLWidget();
+        container->addWidget(glWidget);
+
+        this->setLayout(container);
+}
+

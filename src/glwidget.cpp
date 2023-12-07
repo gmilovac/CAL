@@ -21,12 +21,12 @@ void GLWidget::initializeGL()
     // Here, we are setting it up
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
-    if (err != GLEW_OK) fprintf(stderr, "Error while initializing GLEW: %s\n", glewGetErrorString(err));
-    fprintf(stdout, "Successfully initialized GLEW %s\n", glewGetString(GLEW_VERSION));
+//    if (err != GLEW_OK) fprintf(stderr, "Error while initializing GLEW: %s\n", glewGetErrorString(err));
+//    fprintf(stdout, "Successfully initialized GLEW %s\n", glewGetString(GLEW_VERSION));
 
     glClearColor(0, 0, 0, 1);
     m_program = new QOpenGLShaderProgram;
-    std::cout << QDir::currentPath().toStdString() << std::endl;
+    //std::cout << QDir::currentPath().toStdString() << std::endl;
     m_program->addShaderFromSourceFile(QOpenGLShader::Vertex,":/resources/shader/vertex.vert");
     m_program->addShaderFromSourceFile(QOpenGLShader::Fragment,":/resources/shader/fragment.frag");
     m_program->link();
