@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # Sets project name
-project(lab07 LANGUAGES CXX C)
+project(CAL LANGUAGES CXX C)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
@@ -11,6 +11,7 @@ set(CMAKE_AUTORCC ON)
 # Sets C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_PREFIX_PATH "/Users/gordanmilovac/Qt/6.5.2/macos/lib/cmake")
 
 # Specifies required Qt components
 find_package(Qt6 REQUIRED COMPONENTS Core)
@@ -21,6 +22,7 @@ find_package(Qt6 REQUIRED COMPONENTS Gui)
 
 # Specifies .cpp and .h files to be passed to the compiler
 add_executable(${PROJECT_NAME}
+
   src/main.cpp
 
   src/glwidget.cpp
@@ -30,6 +32,21 @@ add_executable(${PROJECT_NAME}
   src/glwidget.h
   src/mainwindow.h
   src/terraingenerator.h
+
+        src/settings.cpp
+        src/settings.h
+        src/rgba.h
+        src/canvas2d.cpp
+        src/canvas2d.h
+
+        src/filters/filterscale.cpp
+        src/filters/filtergray.cpp
+        src/filters/filteredge.cpp
+        src/filters/filtermedian.cpp
+        src/filters/filterchroma.cpp
+        src/filters/filterblur.cpp
+        src/filters/filterutils.cpp
+        src/filters/filterutils.h
 )
 
 # Specifies other files
