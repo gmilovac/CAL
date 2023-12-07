@@ -20,7 +20,7 @@ void GLWidget::initializeGL()
     // GLEW is a library which provides an implementation for the OpenGL API
     // Here, we are setting it up
     glewExperimental = GL_TRUE;
-    GLenum err = glewInit();
+//    GLenum err = glewInit();
 //    if (err != GLEW_OK) fprintf(stderr, "Error while initializing GLEW: %s\n", glewGetErrorString(err));
 //    fprintf(stdout, "Successfully initialized GLEW %s\n", glewGetString(GLEW_VERSION));
 

@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <iostream>
+#include <stack>
 #include "settings.h"
 
 /**
@@ -149,7 +150,8 @@ void Canvas2D::mouseDown(int x, int y) {
         captureSmudge(getMask(x,y));
     }
     else if (BrushType(settings.brushType) == BRUSH_FILL) {
-        fill(m_data[posToIndex(x,y)], x, y);
+        std::cout << " x= "+std::to_string(x)+" y="+std::to_string(y);
+        fill(m_data[posToIndex(x,y)], x, y, 10);
     }
     if (BrushType(settings.brushType) != BRUSH_FILL) {
     m_isDown=true;
@@ -158,24 +160,85 @@ void Canvas2D::mouseDown(int x, int y) {
     displayImage();
 }
 
-void Canvas2D::fill(RGBA col, int x, int y) {
-    m_data[posToIndex(x,y)] = settings.brushColor;
+void Canvas2D::fill(RGBA col, int x, int y, int depth) {
 
-    for (int i=0; i<3; i++) {
-    for (int j=0; j<3; j++) {
-        if (!(i== 1 && j==1)) {
-            int dx = x - 1 + i;
-            int dy = y - 1 + j;
-
-            std::clamp(dx,0,m_width-1);
-            std::clamp(dy,0,m_height-1);
-            if ( rgbEquals(m_data[posToIndex(dx,dy)],col) ) {
-                m_data[posToIndex(dx,dy)] = settings.brushColor;
-                //m_data[posToIndex(x,dy)] = settings.brushColor;
-                //fill(col,dx,dy);
-            }
-        }
+    std::stack<std::pair<int, int>> pixelsToVisit;
+    pixelsToVisit.push(std::make_pair(x, y));
+    if (rgbEquals(settings.brushColor,col)){
+    return;
     }
+
+    while (!pixelsToVisit.empty()) {
+    auto [xx, yy] = pixelsToVisit.top();
+    pixelsToVisit.pop();
+
+    if (xx < 0 || xx >= m_width || yy < 0 || yy >= m_height || !rgbEquals(m_data[posToIndex(xx,yy)],col)) {
+        continue;
+    }
+
+    m_data[yy * m_width + xx] = settings.brushColor;
+
+    pixelsToVisit.push(std::make_pair(xx + 1, yy));
+    pixelsToVisit.push(std::make_pair(xx - 1, yy));
+    pixelsToVisit.push(std::make_pair(xx, yy + 1));
+    pixelsToVisit.push(std::make_pair(xx, yy - 1));
+    }
+
+//    if (x < 0 || x >= m_width || y < 0 || y >= m_height) {
+//    return; // Out of bounds
+//    }
+
+//    if (!rgbEquals(col, m_data[posToIndex(x,y)])) {
+//    return; // Not the target color
+//    }
+//    if (rgbEquals(m_data[posToIndex(x,y)],settings.brushColor)) {
+//    return;
+//}
+
+//    if (depth <= 0) {
+//    return;
+//    }
+//    //depth--;
+//    m_data[posToIndex(x,y)] = settings.brushColor;
+//    fill(col, x+1, y,depth);
+//    fill(col, x-1, y,depth);
+//    fill(col, x, y+1,depth);
+//    fill(col, x, y-1,depth);
+
+
+
+//    if (rgbEquals(settings.brushColor,col)) {
+//    return;
+//}
+//    if (rgbEquals(m_data[posToIndex(x,y)],settings.brushColor)) {
+//    return;
+//}
+//    if (x>= 0 && x<m_width && y>=0 && y<m_height && !rgbEquals(m_data[posToIndex(x,y)],col) && (depth>0) ) {
+//    m_data[posToIndex(x,y)] = settings.brushColor;
+//    //depth--;
+
+//    }
+}
+
+void Canvas2D::fillY(RGBA col, int x, int y, int depth) {
+    if (rgbEquals(settings.brushColor,col)) {
+    return;
+    }
+//    if (rgbEquals(m_data[posToIndex(x,y)],settings.brushColor)) {
+//    return;
+//    }
+    std::cout<< "filly";
+
+    int yU = y-1;
+    int yD = y+1;
+    while(x>= 0 && x<m_width && yD>=0 && yD<m_height && rgbEquals(m_data[posToIndex(x,yD)],col) && (depth>0) && !rgbEquals(m_data[posToIndex(x,yD)],settings.brushColor) ) {
+    m_data[posToIndex(x,yD)] = settings.brushColor;
+    yD++;
+    }
+
+    while(x>= 0 && x<m_width && yU>=0 && yU<m_height && rgbEquals(m_data[posToIndex(x,yU)],col) && (depth>0) && !rgbEquals(m_data[posToIndex(x,yU)],settings.brushColor)) {
+    m_data[posToIndex(x,yU)] = settings.brushColor;
+    yU--;
     }
 }
 
