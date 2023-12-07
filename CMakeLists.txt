@@ -11,7 +11,7 @@ set(CMAKE_AUTORCC ON)
 # Sets C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_PREFIX_PATH "/Users/gordanmilovac/Qt/6.5.2/macos/lib/cmake")
+# set(CMAKE_PREFIX_PATH "/Users/gordanmilovac/Qt/6.5.2/macos/lib/cmake")
 
 # Specifies required Qt components
 find_package(Qt6 REQUIRED COMPONENTS Core)
