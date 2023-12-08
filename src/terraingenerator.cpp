@@ -63,20 +63,47 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
     for(int x = 0; x < m_resolution; x++) {
         for(int y = 0; y < m_resolution; y++) {
 
-        int row = y;
-        int col = (m_resolution-1) - x; // flips horizontally - images coming out mirrored before
-            int pixel = col+row*m_resolution;
+//        int row = y;
+//        int col = (m_resolution-1) - x; // flips horizontally - images coming out mirrored before
+//            int pixel = col+row*m_resolution;
 
-            glm::vec4 color = canvas[pixel];//glm::vec4(1.f,0.f,0.f,1.f);//flat[pixel];
-            if (color.x==1.f && color.y==1.f && color.z==1.f) {
-                continue;
-            }
+//            glm::vec4 color = canvas[pixel];//glm::vec4(1.f,0.f,0.f,1.f);//flat[pixel];
+//            if (color.x==1.f && color.y==1.f && color.z==1.f) {
+//                continue;
+//            }
 
             int x1 = x;
             int y1 = y;
 
             int x2 = x + 1;
             int y2 = y + 1;
+
+            int row1 = y1;
+            int col1 = (m_resolution-1) - x1; // flips horizontally - images coming out mirrored before
+            int row2 = y2;
+            int col2 = (m_resolution-1) - x2;
+
+
+            row2 = std::clamp(row2,0,m_resolution-1);
+            col2 = std::clamp(col2,0,m_resolution-1);
+
+            glm::vec4 c1 = canvas[col1+row1*m_resolution];//glm::vec4(1.f,0.f,0.f,1.f);//flat[pixel];
+            glm::vec4 c2 = c1;//canvas[col2+row1*m_resolution];
+            glm::vec4 c3 = c1;//canvas[col2+row2*m_resolution];
+            glm::vec4 c4 = c1;//canvas[col1+row2*m_resolution];
+            if (c1.x==1.f && c1.y==1.f && c1.z==1.f) {
+                continue;
+            }
+            if (c2.x==1.f && c2.y==1.f && c2.z==1.f) {
+                continue;
+            }
+            if (c3.x==1.f && c3.y==1.f && c3.z==1.f) {
+                continue;
+            }
+            if (c4.x==1.f && c4.y==1.f && c4.z==1.f) {
+                continue;
+            }
+
 
 
 
@@ -85,6 +112,14 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
             glm::vec3 p3 = getPosition(x2,y2);
             glm::vec3 p4 = getPosition(x1,y2); // IN X,Z,Y format or (vec2 coordinate, height) format
 
+            if (c1.x == c1.y == c1.z) {
+                //std::cout << std::to_string(getHeight(x1,y1));
+                p1.z = getHeight(x1,y1);
+                p2.z = getHeight(x2,y1);
+                p3.z = getHeight(x2,y2);
+                p4.z = getHeight(x1,y2);
+
+            }
 
             glm::vec3 n1 = getNormal(x1,y1);
             glm::vec3 n2 = getNormal(x2,y1);
@@ -97,17 +132,17 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
             // x2y2z3
             addPointToVector(p1, verts);
             addPointToVector(n1, verts);
-            addPointToVector(glm::vec3(color), verts);
+            addPointToVector(glm::vec3(c1), verts);
             //addPointToVector(getColor(n1, p1), verts);
 
             addPointToVector(p2, verts);
             addPointToVector(n2, verts);
-            addPointToVector(glm::vec3(color), verts);
+            addPointToVector(glm::vec3(c2), verts);
             //addPointToVector(getColor(n2, p2), verts);
 
             addPointToVector(p3, verts);
             addPointToVector(n3, verts);
-            addPointToVector(glm::vec3(color), verts);
+            addPointToVector(glm::vec3(c3), verts);
             //addPointToVector(getColor(n3, p3), verts);
 
             // tris 2
@@ -116,17 +151,17 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
             // x1y2z4
             addPointToVector(p1, verts);
             addPointToVector(n1, verts);
-            addPointToVector(glm::vec3(color), verts);
+            addPointToVector(glm::vec3(c1), verts);
             //addPointToVector(getColor(n1, p1), verts);
 
             addPointToVector(p3, verts);
             addPointToVector(n3, verts);
-            addPointToVector(glm::vec3(color), verts);
+            addPointToVector(glm::vec3(c3), verts);
             //addPointToVector(getColor(n3, p3), verts);
 
             addPointToVector(p4, verts);
             addPointToVector(n4, verts);
-            addPointToVector(glm::vec3(color), verts);
+            addPointToVector(glm::vec3(c4), verts);
             //addPointToVector(getColor(n4, p4), verts);
         }
     }
@@ -153,7 +188,7 @@ glm::vec3 TerrainGenerator::getPosition(int row, int col) {
     int pixel = x0+y0*m_resolution;
     pixel = std::clamp(pixel,0,int(m_canvas.size())-1);
     //std::cout << m_canvas[pixel].x;
-    float z = 0; //getHeightMap(row,col);// m_canvas[pixel].x;//0.1f*m_canvas[pixel].x - 0.2f*m_canvas[pixel].z;//getHeight(x, y);
+    float z = getHeight(x, y);
     return glm::vec3(x,y,z);
 }
 
@@ -188,6 +223,8 @@ float TerrainGenerator::getHeight(float x, float y) {
 
     // Return 0 as placeholder
     return z1+z2+z3+z4+z5;
+
+
 }
 //    Task 6:
 //    Scaling z, the output of getHeight changes the amplitude of the noise (directly proportional)
@@ -307,5 +344,5 @@ float TerrainGenerator::computePerlin(float x, float y) {
     return interpolate(interpolate(A, B, o1[0]), interpolate(D, C, o1[0]), o1[1]);
 
     // Return 0 as a placeholder
-    return 0;
+    //return 0;
 }
