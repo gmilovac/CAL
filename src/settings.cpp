@@ -14,7 +14,7 @@ void Settings::loadSettingsOrDefaults() {
     // Load image settings
     QSettings s("CS123", "CS123");
 
-    brushType = s.value("brushType", BRUSH_LINEAR).toInt();
+    brushType = s.value("brushType", BRUSH_CONSTANT).toInt();
     brushRadius = s.value("brushRadius", 10).toInt();
     brushColor.r = s.value("brushRed", 0).toInt();
     brushColor.g = s.value("brushGreen", 0).toInt();
@@ -23,7 +23,6 @@ void Settings::loadSettingsOrDefaults() {
     brushDensity = s.value("brushDensity", 5).toInt();
     fixAlphaBlending = s.value("fixAlphaBlending", false).toBool();
 
-    filterType = s.value("filterType", FILTER_EDGE_DETECT).toInt();
     edgeDetectSensitivity = s.value("edgeDetectSensitivity", 0.5f).toDouble();
     blurRadius = s.value("blurRadius", 10).toInt();
     scaleX = s.value("scaleX", 2).toDouble();

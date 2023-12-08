@@ -53,10 +53,6 @@ bool Canvas2D::loadImageFromFile(const QString &file) {
     for (int i = 0; i < arr.size() / 4.f; i++){
         m_data.push_back(RGBA{(std::uint8_t) arr[4*i], (std::uint8_t) arr[4*i+1], (std::uint8_t) arr[4*i+2], (std::uint8_t) arr[4*i+3]});
     }
-
-
-
-
     displayImage();
     return true;
 }
@@ -78,7 +74,6 @@ bool Canvas2D::saveImageToFile(const QString &file) {
     return true;
 }
 
-
 /**
  * @brief Get Canvas2D's image data and display this to the GUI
  */
@@ -90,48 +85,17 @@ void Canvas2D::displayImage() {
     update();
 }
 
-/**
- * @brief Canvas2D::resize resizes canvas to new width and height
- * @param w
- * @param h
- */
-void Canvas2D::resize(int w, int h) {
-    m_width = w;
-    m_height = h;
-    m_data.resize(w * h);
-    displayImage();
-}
-
-/**
- * @brief Called when the filter button is pressed in the UI
- */
-void Canvas2D::filterImage() {
-    switch(settings.filterType) {
-        case FilterType::FILTER_SCALE: {
-            filterScale(settings.scaleX,settings.scaleY);
-            break;
-        }
-        case FilterType::FILTER_EDGE_DETECT: {
-            filterEdge();
-            break;
-        }
-
-        case FilterType::FILTER_MEDIAN: {
-            filterMedian();
-            break;
-        }
-
-        case FilterType::FILTER_CHROMATIC: {
-            filterChroma();
-            break;
-        }
-        case FilterType::FILTER_BLUR: default:{
-            filterBlur(false); // true = gaussian blur, false = triangle blur
-            break;
-        }
-    }
-    displayImage();
-}
+///**
+// * @brief Canvas2D::resize resizes canvas to new width and height
+// * @param w
+// * @param h
+// */
+//void Canvas2D::resize(int w, int h) {
+//    m_width = w;
+//    m_height = h;
+//    m_data.resize(w * h);
+//    displayImage();
+//}
 
 /**
  * @brief Called when any of the parameters in the UI are modified.
@@ -139,17 +103,11 @@ void Canvas2D::filterImage() {
 void Canvas2D::settingsChanged() {
     // this saves your UI settings locally to load next time you run the program
     settings.saveSettings();
-
 }
 
-
-//mouse down command, sets boolean m_isDown to true
+// Mouse down command, sets boolean m_isDown to true
 void Canvas2D::mouseDown(int x, int y) {
-    // Brush TODO
-    if (BrushType(settings.brushType) == BRUSH_SMUDGE) {
-        captureSmudge(getMask(x,y));
-    }
-    else if (BrushType(settings.brushType) == BRUSH_FILL) {
+    if (BrushType(settings.brushType) == BRUSH_FILL) {
         std::cout << " x= "+std::to_string(x)+" y="+std::to_string(y);
         fill(m_data[posToIndex(x,y)], x, y, 10);
     }
@@ -161,32 +119,24 @@ void Canvas2D::mouseDown(int x, int y) {
 }
 
 void Canvas2D::fill(RGBA col, int x, int y, int depth) {
-
     std::stack<std::pair<int, int>> pixelsToVisit;
     pixelsToVisit.push(std::make_pair(x, y));
     if (rgbEquals(settings.brushColor,col)){
     return;
     }
-
     while (!pixelsToVisit.empty()) {
     auto [xx, yy] = pixelsToVisit.top();
     pixelsToVisit.pop();
-
     if (xx < 0 || xx >= m_width || yy < 0 || yy >= m_height || !rgbEquals(m_data[posToIndex(xx,yy)],col)) {
         continue;
     }
-
     m_data[yy * m_width + xx] = settings.brushColor;
-
     pixelsToVisit.push(std::make_pair(xx + 1, yy));
     pixelsToVisit.push(std::make_pair(xx - 1, yy));
     pixelsToVisit.push(std::make_pair(xx, yy + 1));
     pixelsToVisit.push(std::make_pair(xx, yy - 1));
     }
-
 }
-
-
 
 bool Canvas2D::rgbEquals(RGBA a, RGBA b) {
     if (a.r == b.r) {
@@ -199,87 +149,47 @@ bool Canvas2D::rgbEquals(RGBA a, RGBA b) {
     return false;
 }
 
-//mouse dragged command, updates canvas and edits
+// Mouse dragged command, updates canvas and edits
 void Canvas2D::mouseDragged(int x, int y) {
-    // Brush TODO
     if (m_isDown) {
         editCanvas(x,y);
         displayImage();
-        if (BrushType(settings.brushType) == BRUSH_SMUDGE) {
-            captureSmudge(getMask(x,y));
-        }
     }
 }
 
-//Mouse up command
+// Mouse up command
 void Canvas2D::mouseUp(int x, int y) {
     m_isDown=false;
     visitedPixels.clear();
 }
 
-
-//Edits the canvas
+// Edits the canvas
 void Canvas2D::editCanvas(int x, int y) {
     std::vector<int> mask = getMask(x,y);
     for (int j=0;j<mask.size();j++) {
         int i = mask.at(j);
         if (i>=0 && i<(m_width*m_height)) {
-            if (settings.brushType==BRUSH_SMUDGE) {
-                blendColor(smudgeMask.at(j),x,y,i);
-
-            }
-            else {
-                if (settings.fixAlphaBlending) {
-                    if (!visitedPixels.contains(i)) {
-                        blendColor(settings.brushColor,x,y,i);
-                        visitedPixels.insert(i);
-                    }
-                }
-                else {
-                    RGBA brushColor = settings.brushColor;
-                    blendColor(brushColor,x,y,i);
-                }
-            }
+            RGBA brushColor = settings.brushColor;
+            blendColor(brushColor,x,y,i);
         }
     }
 }
 
-//Calculates the final color from a given brushColor and the canvas location
+// Calculates the final color from a given brushColor and the canvas location
 void Canvas2D::blendColor(RGBA brushColor,int x,int y, int i) {
     RGBA canvasColor = m_data.at(i);
-    int xi = indexToX(i);
-    int yi = indexToY(i);
-    float M = getMaskAlpha(x,y,xi,yi);
+    int xi = i % m_width;
+    int yi = floor(i / m_width);
     float a = static_cast<float>(brushColor.a) / 255;
     if (xi>=0 && xi<m_width && yi>=0 && yi<m_height) {
-        m_data.at(i).r = round((M*a)*brushColor.r+(1-(M*a))*canvasColor.r);
-        m_data.at(i).g = round((M*a)*brushColor.g+(1-(M*a))*canvasColor.g);
-        m_data.at(i).b = round((M*a)*brushColor.b+(1-(M*a))*canvasColor.b);
+        m_data.at(i).r = round(a*brushColor.r+(1-a)*canvasColor.r);
+        m_data.at(i).g = round(a*brushColor.g+(1-a)*canvasColor.g);
+        m_data.at(i).b = round(a*brushColor.b+(1-a)*canvasColor.b);
     }
-}
-
-// Captures a smudge based on pixels currently in view of mask
-void Canvas2D::captureSmudge(std::vector<int> indexes) {
-    std::vector<RGBA> smudged;
-    for (int i : indexes) {
-
-        smudged.push_back(m_data.at(i));
-    }
-    smudgeMask = smudged;
-}
-
-
-int Canvas2D::indexToX(int index) {
-    return index % m_width;
-}
-
-int Canvas2D::indexToY(int index) {
-    return floor(index/m_width);
 }
 
 std::vector<glm::vec4> Canvas2D::getCanvasData() {
     std::vector<glm::vec4> d(m_data.size());
-   // d[0] = glm::vec4(1.f,1.f,0.f,1.f);
     for (int i=0; i<m_data.size(); i++) {
         d[i][0] = float(m_data[i].r/255.f);
         d[i][1] = float(m_data[i].g/255.f);
@@ -287,40 +197,6 @@ std::vector<glm::vec4> Canvas2D::getCanvasData() {
         d[i][3] = 1.f;
     }
     return d;
-}
-
-//Gets the alpha value for a given position depending on the mask in effect
-float Canvas2D::getMaskAlpha(int x, int y, int x2, int y2) {
-    BrushType b = BrushType(settings.brushType);
-    int r = settings.brushRadius;
-    float M = 1.0;
-    switch(b) {
-
-        case BRUSH_QUADRATIC: {
-            //f(d) = d^2 - 2d + 1 gives us f(0) = 1, f(0.5) = 0.25, f(1) = 0
-            float dr = sqrt((pow(x-x2,2)+pow(y-y2,2)))/r; //dr is the ratio of the distance to the radius
-            if (dr>=0 && dr<=1) {
-                M = pow(dr,2) - 2*dr + 1;
-            }
-            else {
-                M = 0.0;
-            }
-            break;
-        }
-
-        case BRUSH_LINEAR: case BRUSH_SMUDGE: {
-            float d = sqrt(pow(x-x2,2)+pow(y-y2,2));
-            M = 1 - (std::max(d,static_cast<float> (0)))/r;
-            break;
-        }
-
-        default: {
-            M = 1.0;
-        }
-
-    }
-
-    return M;
 }
 
 // Gets a vector of indexes for a given mask, centered at x,y of radius settings.brushRadius
@@ -341,13 +217,11 @@ std::vector<int> Canvas2D::getMask(int x, int y) {
         }
         return mask;
     }
-
     else { // returns empty vector is center of brush is outside of canvas
         std::vector<int> empty;
         return empty;
     }
 }
-
 
 //position to index helper method
 int Canvas2D::posToIndex(int x, int y) {

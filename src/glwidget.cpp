@@ -11,22 +11,30 @@
 
 GLWidget::GLWidget(QWidget *parent)
     : QOpenGLWidget(parent), m_angleX(0), m_angleY(0), m_zoom(1.0)
-{}
+{
+    //setMouseTracking(true);
+    setFocusPolicy(Qt::StrongFocus);
+
+    m_keyMap[Qt::Key_W]       = false;
+    m_keyMap[Qt::Key_A]       = false;
+    m_keyMap[Qt::Key_S]       = false;
+    m_keyMap[Qt::Key_D]       = false;
+    m_keyMap[Qt::Key_Control] = false;
+    m_keyMap[Qt::Key_Space]   = false;
+}
 
 GLWidget::~GLWidget() {}
 
 void GLWidget::initializeGL()
 {
-    // GLEW is a library which provides an implementation for the OpenGL API
-    // Here, we are setting it up
+    m_timer = startTimer(1000/60);
+    m_elapsedTimer.start();
+
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
-//    if (err != GLEW_OK) fprintf(stderr, "Error while initializing GLEW: %s\n", glewGetErrorString(err));
-//    fprintf(stdout, "Successfully initialized GLEW %s\n", glewGetString(GLEW_VERSION));
 
     glClearColor(0, 0, 0, 1);
     m_program = new QOpenGLShaderProgram;
-    //std::cout << QDir::currentPath().toStdString() << std::endl;
     m_program->addShaderFromSourceFile(QOpenGLShader::Vertex,":/resources/shader/vertex.vert");
     m_program->addShaderFromSourceFile(QOpenGLShader::Fragment,":/resources/shader/fragment.frag");
     m_program->link();
@@ -66,8 +74,11 @@ void GLWidget::initializeGL()
     m_world.translate(QVector3D(-0.5,-0.5,0));
 
 
-    m_camera.setToIdentity();
-    m_camera.lookAt(QVector3D(1,1,1),QVector3D(0,0,0),QVector3D(0,0,1));
+    m_cameraPos = QVector3D(1,1,1);
+    m_cameraLook = QVector3D(0,0,0);
+    m_cameraUp = QVector3D(0,0,1);
+    m_camera.lookAt(m_cameraPos,m_cameraLook,m_cameraUp);
+
 
     m_program->release();
 }
@@ -95,6 +106,45 @@ void GLWidget::resizeGL(int w, int h)
 {
     m_proj.setToIdentity();
     m_proj.perspective(45.0f, GLfloat(w) / h, 0.01f, 100.0f);
+}
+
+void GLWidget::keyPressEvent(QKeyEvent *event) {
+    m_keyMap[Qt::Key(event->key())] = true;
+}
+
+void GLWidget::keyReleaseEvent(QKeyEvent *event) {
+    m_keyMap[Qt::Key(event->key())] = false;
+}
+
+void GLWidget::timerEvent(QTimerEvent *event) {
+//    int elapsedms   = m_elapsedTimer.elapsed();
+//    float deltaTime = elapsedms * 0.001f;
+//    m_elapsedTimer.restart();
+//
+//    if (m_keyMap[Qt::Key_W]){
+//        std::cout << "W" << std::endl;
+//        m_cameraLook.normalize();
+//        m_camera.translate(5.f * deltaTime * m_cameraLook);
+//    }
+//    if (m_keyMap[Qt::Key_S]){
+//        std::cout << "S" << std::endl;
+//        m_cameraLook.normalize();
+//        m_camera.translate(5.f * deltaTime * - m_cameraLook);
+//    }
+//    if (m_keyMap[Qt::Key_A]){
+//        cross(m_cameraLook,m_cameraUp);
+//        m_camera.translate(5.f * deltaTime);
+//    }
+//    if (m_keyMap[Qt::Key_D]){
+//        moveCamera(5.f * deltaTime * glm::normalize(glm::vec4(glm::cross(glm::vec3(m_data.cameraData.look), glm::vec3(m_data.cameraData.up)), 1.f)));
+//    }
+//    if (m_keyMap[Qt::Key_Control]){
+//        moveCamera(5.f * deltaTime * glm::vec4(0.f, -1.f, 0.f, 0.f));
+//    }
+//    if (m_keyMap[Qt::Key_Space]){
+//        moveCamera(5.f * deltaTime * glm::vec4(0.f, 1.f, 0.f, 0.f));
+//    }
+//    rebuildMatrices();
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event) {

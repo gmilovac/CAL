@@ -11,27 +11,7 @@
 // Enumeration values for the Brush types from which the user can choose in the GUI.
 enum BrushType {
     BRUSH_CONSTANT,
-    BRUSH_LINEAR,
-    BRUSH_QUADRATIC,
-    BRUSH_SMUDGE,
-    BRUSH_SPRAY,
-    BRUSH_SPEED,
-    BRUSH_FILL,
-    BRUSH_CUSTOM,
-    NUM_BRUSH_TYPES
-};
-
-// Enumeration values for the Filters that the user can select in the GUI.
-enum FilterType {
-    FILTER_EDGE_DETECT,
-    FILTER_BLUR,
-    FILTER_SCALE,
-    FILTER_MEDIAN,
-    FILTER_CHROMATIC,
-    FILTER_MAPPING,
-    FILTER_ROTATION,
-    FILTER_BILATERAL,
-    NUM_FILTER_TYPES
+    BRUSH_FILL
 };
 
 /**

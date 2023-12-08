@@ -6,6 +6,7 @@
 #include <QOpenGLBuffer>
 #include "terraingenerator.h"
 #include <QMatrix4x4>
+#include <QElapsedTimer>
 #include "rgba.h"
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
@@ -27,7 +28,14 @@ protected:
     void wheelEvent(QWheelEvent *e) override;
 
 private:
+    void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
+    void timerEvent(QTimerEvent *event) override;
+    void moveCamera(glm::vec4 direction);
     void rebuildMatrices();
+
+    QElapsedTimer m_elapsedTimer;
+    int m_timer;
 
     // ==== Canvas Variables =======
     std::vector<glm::vec4> m_canvasData;
@@ -42,6 +50,9 @@ private:
     QOpenGLVertexArrayObject m_terrainVao;
     QOpenGLBuffer m_terrainVbo;
     QMatrix4x4 m_proj;
+    QVector3D m_cameraPos;
+    QVector3D m_cameraUp;
+    QVector3D m_cameraLook;
     QMatrix4x4 m_camera;
     QMatrix4x4 m_world;
     TerrainGenerator m_terrain;
@@ -50,9 +61,9 @@ private:
     int m_projMatrixLoc = 0;
     int m_mvMatrixLoc = 0;
 
+    std::unordered_map<Qt::Key, bool> m_keyMap;
     QPoint m_prevMousePos;
     float m_angleX;
     float m_angleY;
     float m_zoom;
-
 };

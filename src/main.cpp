@@ -5,15 +5,6 @@
 #include <QSurfaceFormat>
 #include <QScreen>
 
-
-//int main(int argc, char *argv[])
-//{
-//    QApplication a(argc, argv);
-//    MainWindow w;
-//    w.show();
-//    return a.exec();
-//}
-
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -31,7 +22,7 @@ int main(int argc, char *argv[])
     MainWindow w;
 
     // w.resize(w.sizeHint());
-    w.resize(900, 600);
+    w.resize(742, 554);
 
 
     int desktopArea = QGuiApplication::primaryScreen()->size().width() *

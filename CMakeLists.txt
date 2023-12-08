@@ -39,15 +39,8 @@ add_executable(${PROJECT_NAME}
         src/canvas2d.cpp
         src/canvas2d.h
 
-        src/filters/filterscale.cpp
-        src/filters/filtergray.cpp
-        src/filters/filteredge.cpp
-        src/filters/filtermedian.cpp
-        src/filters/filterchroma.cpp
-        src/filters/filterblur.cpp
-        src/filters/filterutils.cpp
-        src/filters/filterutils.h
-        src/terrainwindow.h src/terrainwindow.cpp
+        src/terrainwindow.h
+        src/terrainwindow.cpp
 )
 
 # Specifies other files
