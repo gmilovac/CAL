@@ -8,6 +8,7 @@
 #include <QMatrix4x4>
 #include <QElapsedTimer>
 #include "rgba.h"
+#include "src/camera/camera.h"
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
@@ -53,6 +54,7 @@ private:
     QVector3D m_cameraPos;
     QVector3D m_cameraUp;
     QVector3D m_cameraLook;
+    //Camera camera;
     QMatrix4x4 m_camera;
     QMatrix4x4 m_world;
     TerrainGenerator m_terrain;

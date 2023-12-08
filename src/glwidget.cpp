@@ -74,9 +74,11 @@ void GLWidget::initializeGL()
     m_world.translate(QVector3D(-0.5,-0.5,0));
 
 
-    m_cameraPos = QVector3D(1,1,1);
-    m_cameraLook = QVector3D(0,0,0);
-    m_cameraUp = QVector3D(0,0,1);
+
+    m_cameraPos = QVector3D(1.f,1.f,1.f);
+    m_cameraLook = QVector3D(0.f,0.f,0.f);
+    m_cameraUp = QVector3D(0.f,0.f,1.f);
+    //camera = Camera(m_cameraPos,m_cameraLook,m_cameraUp, width() / height(), 45.0f, 100.0f, 0.01f);
     m_camera.lookAt(m_cameraPos,m_cameraLook,m_cameraUp);
 
 
@@ -94,7 +96,6 @@ void GLWidget::paintGL()
     m_program->setUniformValue(m_program->uniformLocation("wireshade"),m_terrain.m_wireshade);
 
     int res = m_terrain.getResolution();
-
 
     glPolygonMode(GL_FRONT_AND_BACK,m_terrain.m_wireshade? GL_LINE : GL_FILL);
     glDrawArrays(GL_TRIANGLES, 0, res * res * 6);
@@ -123,17 +124,19 @@ void GLWidget::timerEvent(QTimerEvent *event) {
 //
 //    if (m_keyMap[Qt::Key_W]){
 //        std::cout << "W" << std::endl;
-//        m_cameraLook.normalize();
-//        m_camera.translate(5.f * deltaTime * m_cameraLook);
+//        m_cameraPos = m_cameraPos + deltaTime * m_cameraLook;
+//        m_camera.lookAt(m_cameraPos,m_cameraPos + m_cameraLook,m_cameraUp);
+//        m_proj.setToIdentity();
+//        m_proj.perspective(45.0f, 1.0 * width() / height(), 0.01f, 100.0f);
 //    }
 //    if (m_keyMap[Qt::Key_S]){
 //        std::cout << "S" << std::endl;
-//        m_cameraLook.normalize();
-//        m_camera.translate(5.f * deltaTime * - m_cameraLook);
+//        m_cameraPos = m_cameraPos - deltaTime * m_cameraLook;
+//        m_camera.lookAt(m_cameraPos,m_cameraLook,m_cameraUp);
 //    }
 //    if (m_keyMap[Qt::Key_A]){
 //        cross(m_cameraLook,m_cameraUp);
-//        m_camera.translate(5.f * deltaTime);
+//        m_camera.translate(deltaTime);
 //    }
 //    if (m_keyMap[Qt::Key_D]){
 //        moveCamera(5.f * deltaTime * glm::normalize(glm::vec4(glm::cross(glm::vec3(m_data.cameraData.look), glm::vec3(m_data.cameraData.up)), 1.f)));
@@ -144,7 +147,7 @@ void GLWidget::timerEvent(QTimerEvent *event) {
 //    if (m_keyMap[Qt::Key_Space]){
 //        moveCamera(5.f * deltaTime * glm::vec4(0.f, 1.f, 0.f, 0.f));
 //    }
-//    rebuildMatrices();
+//    update();
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event) {
@@ -167,16 +170,27 @@ void GLWidget::rebuildMatrices() {
     m_camera.setToIdentity();
     QMatrix4x4 rot;
     rot.setToIdentity();
+//    QVector3D axis = QVector3D::crossProduct(m_cameraLook, m_cameraUp);
+//    rot.rotate(m_angleX, axis);
+//    m_cameraLook = rot * m_cameraLook;
+//    m_cameraUp = rot * m_cameraUp;
+
     rot.rotate(-10 * m_angleX,QVector3D(0,0,1));
-    QVector3D eye = QVector3D(1,1,1);
+    QVector3D eye = m_cameraPos;
     eye = rot.map(eye);
+//    QMatrix4x4 rot2;
+//    rot.setToIdentity();
+//    rot2.rotate(m_angleY, QVector3D(0, 1, 0));
+//    m_cameraLook = rot2 * m_cameraLook;
+//    m_cameraUp = rot2 * m_cameraUp;
+
     rot.setToIdentity();
-    rot.rotate(-10 * m_angleY,QVector3D::crossProduct(QVector3D(0,0,1),eye));
+    rot.rotate(-10 * m_angleY,QVector3D::crossProduct(QVector3D(0,1,0),eye));
     eye = rot.map(eye);
 
     eye = eye * m_zoom;
 
-    m_camera.lookAt(eye,QVector3D(0,0,0),QVector3D(0,0,1));
+    m_camera.lookAt(eye,m_cameraLook,m_cameraUp);
 
     m_proj.setToIdentity();
     m_proj.perspective(45.0f, 1.0 * width() / height(), 0.01f, 100.0f);
@@ -186,30 +200,4 @@ void GLWidget::rebuildMatrices() {
 
 void GLWidget::renderTerrain(std::vector<glm::vec4> canvas) {
     m_canvasData = canvas;
-    //m_col = glm::vec4(1.f,1.f,0.f,1.f);
-    //initializeGL();
-//    m_terrainVao.create();
-//    m_terrainVao.bind();
-//    std::vector<glm::vec4> h;
-
-//    std::vector<GLfloat> verts = m_terrain.generateTerrain(h);
-
-//    m_terrainVbo.create();
-//    m_terrainVbo.bind();
-//    m_terrainVbo.allocate(verts.data(),verts.size()*sizeof(GLfloat));
-
-//    glEnableVertexAttribArray(0);
-//    glEnableVertexAttribArray(1);
-//    glEnableVertexAttribArray(2);
-
-//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
-//                          nullptr);
-
-//    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
-//                          reinterpret_cast<void *>(3 * sizeof(GLfloat)));
-
-//    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
-//                          reinterpret_cast<void *>(6 * sizeof(GLfloat)));
-
-//    m_terrainVbo.release();
 }
