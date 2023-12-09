@@ -9,6 +9,7 @@
 #include <iostream>
 #include <stack>
 #include "settings.h"
+#include "mainwindow.h"
 
 /**
  * @brief Initializes new 500x500 canvas
@@ -85,6 +86,8 @@ void Canvas2D::displayImage() {
     update();
 }
 
+
+
 ///**
 // * @brief Canvas2D::resize resizes canvas to new width and height
 // * @param w
@@ -108,7 +111,6 @@ void Canvas2D::settingsChanged() {
 // Mouse down command, sets boolean m_isDown to true
 void Canvas2D::mouseDown(int x, int y) {
     if (BrushType(settings.brushType) == BRUSH_FILL) {
-        std::cout << " x= "+std::to_string(x)+" y="+std::to_string(y);
         fill(m_data[posToIndex(x,y)], x, y, 10);
     }
     if (BrushType(settings.brushType) != BRUSH_FILL) {
@@ -136,6 +138,145 @@ void Canvas2D::fill(RGBA col, int x, int y, int depth) {
     pixelsToVisit.push(std::make_pair(xx, yy + 1));
     pixelsToVisit.push(std::make_pair(xx, yy - 1));
     }
+}
+
+std::vector<float> Canvas2D::blurImage(std::vector<float> input) {
+    std::vector<float> tblur(1.f+2.f*settings.blurRadius, 1.f/(1.f+2.f*settings.blurRadius));
+    std::vector<float> output(input.size());
+    output = convolve(input,m_width,m_height,tblur,tblur);
+//    for (int i=0; i<input.size(); i++) {
+//    m_data[i].r = fToInt(255.f*output[i]);
+//    m_data[i].g = fToInt(255.f*output[i]);
+//    m_data[i].b = fToInt(255.f*output[i]);
+//    m_data[i].a = 255;
+//    }
+
+   // displayImage();
+    return output;
+}
+std::vector<float> Canvas2D::getHeightMap() {
+    std::vector<float> heightMap(m_data.size());
+    for (int i=0; i<heightMap.size(); i++) {
+    RGBA color = m_data[i];
+    if (rgbEquals(color, MainWindow::MOUNTAINS_COLOR)) {
+        heightMap[i] = 0.2f;
+    }
+    else if (rgbEquals(color, MainWindow::FOREST_COLOR)) {
+        heightMap[i] = 0.08f;
+    }
+    else if (rgbEquals(color, MainWindow::GRASSLAND_COLOR)) {
+        heightMap[i] = 0.1f;
+    }
+    else if (rgbEquals(color, MainWindow::DESERT_COLOR)) {
+        heightMap[i] = 0.05f;
+    }
+    else if (rgbEquals(color, MainWindow::LAKE_COLOR)) {
+        heightMap[i] = 0.0f;
+    }
+    else if (rgbEquals(color, MainWindow::OCEAN_COLOR)) {
+        heightMap[i] = 0.0f;
+    }
+    else {
+        heightMap[i] = 0.0f;
+    }
+
+    //m_data[i] = RGBA{fToInt(heightMap[i]*255.f),fToInt(heightMap[i]*255.f),fToInt(heightMap[i]*255.f),255};
+    }
+
+    return heightMap;
+    //displayImage();
+
+}
+std::vector<float> Canvas2D::getNoiseMap() {
+    std::vector<float> noiseMap(m_data.size());
+    for (int i=0; i<noiseMap.size(); i++) {
+    RGBA color = m_data[i];
+    if (rgbEquals(color, MainWindow::MOUNTAINS_COLOR)) {
+        noiseMap[i] = 1.f;
+    }
+    else if (rgbEquals(color, MainWindow::FOREST_COLOR)) {
+        noiseMap[i] = 0.1f;
+    }
+    else if (rgbEquals(color, MainWindow::GRASSLAND_COLOR)) {
+        noiseMap[i] = 0.2f;
+    }
+    else if (rgbEquals(color, MainWindow::DESERT_COLOR)) {
+        noiseMap[i] = 0.3f;
+    }
+    else if (rgbEquals(color, MainWindow::LAKE_COLOR)) {
+        noiseMap[i] = 0.0f;
+    }
+    else if (rgbEquals(color, MainWindow::OCEAN_COLOR)) {
+        noiseMap[i] = 0.f;
+    }
+    else {
+        noiseMap[i] = 0.0f;
+    }
+
+    //m_data[i] = RGBA{fToInt(noiseMap[i]*255.f),fToInt(noiseMap[i]*255.f),fToInt(noiseMap[i]*255.f),255};
+    }
+    //displayImage();
+    return noiseMap;
+}
+
+std::vector<float> Canvas2D::convolve(std::vector<float> &data, int width, int height,
+                           const std::vector<float> &xk, const std::vector<float> &yk) {
+
+    int imageSize = (width)*(height);
+    std::vector<float> result(imageSize); // initializes output vector same size as image
+    std::vector<float> resultX(imageSize); // must be doubles to maintain accuracy
+
+    for (int row=0;row < height; row++) { // horizontal convolution
+    for (int col=0;col<width;col++) {
+
+        float acc = 0.0;
+//        float greenAcc = 0.0;
+//        float blueAcc = 0.0;
+
+        for (int i = (xk.size()-1);i>=0;i--) { // flips kernel
+
+            int newX = col + (i - (xk.size()-1)/2);
+            float pixel = (getPixelRepeated(data,width,height,newX,row));
+            acc += pixel*xk[i];
+//            greenAcc += pixel.g*xk[i];
+//            blueAcc += pixel.b*xk[i];
+        }
+
+        resultX.at(width*row+col) = acc;
+    }                           //  Stores as doubleRGBA vector to maintain accuracy between convolutions
+    }
+
+    for (int row=0;row < height; row++) { // vertical convolution
+    for (int col=0;col<width;col++) {
+
+        float acc = 0.0;
+//        float greenAcc = 0.0;
+//        float blueAcc = 0.0;
+
+        for (int i = (yk.size()-1);i>=0;i--) { // flips kernel
+
+            int newY = row + (i - (yk.size()-1)/2);
+            float pixel = getPixelRepeated(resultX,width,height,col,newY);
+            acc += pixel*yk[i];
+//            greenAcc += pixel.g*yk[i];
+//            blueAcc += pixel.b*yk[i];
+        }
+
+        result.at(width*row+col) = acc;
+    }
+    }
+
+    return result;
+}
+
+int Canvas2D::fToInt(float x) {
+    return std::max(std::min(int(round(x)), 255), 0);
+}
+
+float Canvas2D::getPixelRepeated(std::vector<float> &data, int width, int height, int x, int y) {
+    int newX = (x < 0) ? 0 : std::min(x, width  - 1);
+    int newY = (y < 0) ? 0 : std::min(y, height - 1);
+    return data[width * newY + newX];
 }
 
 bool Canvas2D::rgbEquals(RGBA a, RGBA b) {
@@ -191,9 +332,9 @@ void Canvas2D::blendColor(RGBA brushColor,int x,int y, int i) {
 std::vector<glm::vec4> Canvas2D::getCanvasData() {
     std::vector<glm::vec4> d(m_data.size());
     for (int i=0; i<m_data.size(); i++) {
-        d[i][0] = float(m_data[i].r/255.f);
-        d[i][1] = float(m_data[i].g/255.f);
-        d[i][2] = float(m_data[i].b/255.f);
+        d[i][0] = (float(m_data[i].r)/255.f);
+        d[i][1] = (float(m_data[i].g)/255.f);
+        d[i][2] = (float(m_data[i].b)/255.f);
         d[i][3] = 1.f;
     }
     return d;
@@ -207,7 +348,7 @@ std::vector<int> Canvas2D::getMask(int x, int y) {
         for (int i = x-r; i<x+r;i++) {
             for (int j=y-r; j<y+r; j++) { // check if pixel in mask falls within circle of brush radius
                 if (i>=0 && i<m_width && j>=0 && j<m_height) { // stops brush from looping to other side when painting on edge
-                    if (pow(x-i,2) + pow(y-j,2) <= pow(r,2)) {
+                    if (pow(x-i,2) + pow(y-j,2) < pow(r,2)) {
                         mask.push_back(posToIndex(i,j)); // adds pixel to brush mask vector if it falls within brush circle
 
                     }

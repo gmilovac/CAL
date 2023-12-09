@@ -26,6 +26,9 @@ public:
     //void resize(int w, int h);
 
     std::vector<glm::vec4> getCanvasData();
+    std::vector<float> blurImage(std::vector<float> input);
+    std::vector<float> getHeightMap();
+    std::vector<float> getNoiseMap();
 
     // This will be called when the settings have changed
     void settingsChanged();
@@ -35,6 +38,13 @@ private:
     void fill(RGBA col, int x, int y, int depth);
     bool rgbEquals(RGBA a, RGBA b);
 
+
+    std::vector<float> convolve(std::vector<float> &data, int width, int height,
+                               const std::vector<float> &xk, const std::vector<float> &yk);
+    float getPixelRepeated(std::vector<float> &data, int width, int height, int x, int y);
+
+
+    int fToInt(float x);
     bool m_isDown;
     void editCanvas(int x, int y);
     std::vector<int> getMask(int x, int y);

@@ -4,6 +4,7 @@
 #include <iostream>
 #include "glm/glm.hpp"
 #include "rgba.h"
+#include "mainwindow.h"
 
 // Constructor
 TerrainGenerator::TerrainGenerator()
@@ -45,36 +46,16 @@ void addPointToVector(glm::vec3 point, std::vector<float>& vector) {
 }
 
 // Generates the geometry of the output triangle mesh
-std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canvas) {
+std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canvas,  std::vector<float> noiseData, std::vector<float> heightData) {
     m_canvas = canvas;
     std::vector<float> verts;
     m_resolution = 512; //int(sqrt(flat.size()));
     verts.reserve(m_resolution * m_resolution * 6);
 
-    for (int x = 0; x < m_resolution; x++) {
-    for (int y = 0; y < m_resolution; y++) {
-        int row = y;
-        int col = (m_resolution-1) - x; // flips horizontally - images coming out mirrored before
-        int pixel = col+row*m_resolution;
-        m_heightMap[x+y*m_resolution] = canvas[pixel].y;
-    }
-    }
-
     for(int x = 0; x < m_resolution; x++) {
         for(int y = 0; y < m_resolution; y++) {
-
-//        int row = y;
-//        int col = (m_resolution-1) - x; // flips horizontally - images coming out mirrored before
-//            int pixel = col+row*m_resolution;
-
-//            glm::vec4 color = canvas[pixel];//glm::vec4(1.f,0.f,0.f,1.f);//flat[pixel];
-//            if (color.x==1.f && color.y==1.f && color.z==1.f) {
-//                continue;
-//            }
-
             int x1 = x;
             int y1 = y;
-
             int x2 = x + 1;
             int y2 = y + 1;
 
@@ -82,91 +63,95 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
             int col1 = (m_resolution-1) - x1; // flips horizontally - images coming out mirrored before
             int row2 = y2;
             int col2 = (m_resolution-1) - x2;
-
-
             row2 = std::clamp(row2,0,m_resolution-1);
             col2 = std::clamp(col2,0,m_resolution-1);
 
-            glm::vec4 c1 = canvas[col1+row1*m_resolution];//glm::vec4(1.f,0.f,0.f,1.f);//flat[pixel];
-            glm::vec4 c2 = c1;//canvas[col2+row1*m_resolution];
-            glm::vec4 c3 = c1;//canvas[col2+row2*m_resolution];
-            glm::vec4 c4 = c1;//canvas[col1+row2*m_resolution];
-            if (c1.x==1.f && c1.y==1.f && c1.z==1.f) {
-                continue;
+            glm::vec4 c1 = canvas[col1+row1*m_resolution];
+            if (c1.x==1.f && c1.y==1.f && c1.z==1.f) {continue;}
+
+            glm::vec3 p0 = getPosition(x1,y1,heightData[col1+row1*m_resolution], noiseData[col1+row1*m_resolution]);
+            glm::vec3 p1 = getPosition(x2,y1,heightData[col2+row1*m_resolution], noiseData[col2+row1*m_resolution]);
+            glm::vec3 p2 = getPosition(x2,y2,heightData[col2+row2*m_resolution], noiseData[col2+row2*m_resolution]);
+            glm::vec3 p3 = getPosition(x1,y2,heightData[col1+row2*m_resolution], noiseData[col1+row2*m_resolution]); // IN X,Z,Y format or (vec2 coordinate, height) format
+
+
+            if (rgbEquals(c1,MainWindow::OCEAN_COLOR)) {
+                if (p1.z != 0.f || p2.z != 0.f || p3.z != 0.f || p0.z != 0.f) {
+                    c1 = glm::vec4(0.988f,0.776f,0.376f,1.f); // sand color
+                }
             }
-            if (c2.x==1.f && c2.y==1.f && c2.z==1.f) {
-                continue;
-            }
-            if (c3.x==1.f && c3.y==1.f && c3.z==1.f) {
-                continue;
-            }
-            if (c4.x==1.f && c4.y==1.f && c4.z==1.f) {
-                continue;
-            }
+            float mountainThreshold = 0.12;
 
-
-
-
-            glm::vec3 p1 = getPosition(x1,y1);
-            glm::vec3 p2 = getPosition(x2,y1);
-            glm::vec3 p3 = getPosition(x2,y2);
-            glm::vec3 p4 = getPosition(x1,y2); // IN X,Z,Y format or (vec2 coordinate, height) format
-
-            if (c1.x == c1.y == c1.z) {
-                //std::cout << std::to_string(getHeight(x1,y1));
-                p1.z = getHeight(x1,y1);
-                p2.z = getHeight(x2,y1);
-                p3.z = getHeight(x2,y2);
-                p4.z = getHeight(x1,y2);
-
+            if (heightData[col1+row1*m_resolution] > mountainThreshold || heightData[col2+row1*m_resolution] > mountainThreshold ||
+                heightData[col2+row2*m_resolution] > mountainThreshold || heightData[col1+row2*m_resolution] > mountainThreshold) {
+                c1 = glm::vec4(.5,.5,.5,1);
             }
 
-            glm::vec3 n1 = getNormal(x1,y1);
-            glm::vec3 n2 = getNormal(x2,y1);
-            glm::vec3 n3 = getNormal(x2,y2);
-            glm::vec3 n4 = getNormal(x1,y2);
 
-            // tris 1
-            // x1y1z1
-            // x2y1z2
-            // x2y2z3
+
+            glm::vec3 n0 = getNormal(x1,y1,heightData[col1+row1*m_resolution], noiseData[col1+row1*m_resolution]);
+            glm::vec3 n1 = getNormal(x2,y1,heightData[col2+row1*m_resolution], noiseData[col2+row1*m_resolution]);
+            glm::vec3 n2 = getNormal(x2,y2,heightData[col2+row2*m_resolution], noiseData[col2+row2*m_resolution]);
+            glm::vec3 n3 = getNormal(x1,y2,heightData[col1+row2*m_resolution], noiseData[col1+row2*m_resolution]);
+            addPointToVector(p0, verts);
+            addPointToVector(n0, verts);
+            addPointToVector(glm::vec3(c1), verts);
+
             addPointToVector(p1, verts);
             addPointToVector(n1, verts);
             addPointToVector(glm::vec3(c1), verts);
-            //addPointToVector(getColor(n1, p1), verts);
 
             addPointToVector(p2, verts);
             addPointToVector(n2, verts);
-            addPointToVector(glm::vec3(c2), verts);
-            //addPointToVector(getColor(n2, p2), verts);
-
-            addPointToVector(p3, verts);
-            addPointToVector(n3, verts);
-            addPointToVector(glm::vec3(c3), verts);
-            //addPointToVector(getColor(n3, p3), verts);
+            addPointToVector(glm::vec3(c1), verts);
 
             // tris 2
-            // x1y1z1
-            // x2y2z3
-            // x1y2z4
-            addPointToVector(p1, verts);
-            addPointToVector(n1, verts);
+            addPointToVector(p0, verts);
+            addPointToVector(n0, verts);
             addPointToVector(glm::vec3(c1), verts);
-            //addPointToVector(getColor(n1, p1), verts);
+
+            addPointToVector(p2, verts);
+            addPointToVector(n2, verts);
+            addPointToVector(glm::vec3(c1), verts);
 
             addPointToVector(p3, verts);
             addPointToVector(n3, verts);
-            addPointToVector(glm::vec3(c3), verts);
-            //addPointToVector(getColor(n3, p3), verts);
+            addPointToVector(glm::vec3(c1), verts);
 
-            addPointToVector(p4, verts);
-            addPointToVector(n4, verts);
-            addPointToVector(glm::vec3(c4), verts);
-            //addPointToVector(getColor(n4, p4), verts);
         }
     }
     return verts;
 }
+
+/*
+ *             if (rgbEquals(c1,MainWindow::MOUNTAINS_COLOR)) {
+
+
+            }
+
+            else if (rgbEquals(c1,MainWindow::FOREST_COLOR)) {
+
+
+            }
+
+            else if (rgbEquals(c1,MainWindow::GRASSLAND_COLOR)) {
+
+            }
+
+            else if (rgbEquals(c1,MainWindow::DESERT_COLOR)) {
+
+
+            }
+
+            else if (rgbEquals(c1,MainWindow::LAKE_COLOR)) {
+
+
+
+            }
+
+
+ *
+ */
 
 // Samples the (infinite) random vector grid at (row, col)
 glm::vec2 TerrainGenerator::sampleRandomVector(int row, int col)
@@ -178,21 +163,34 @@ glm::vec2 TerrainGenerator::sampleRandomVector(int row, int col)
 
 // Takes a grid coordinate (row, col), [0, m_resolution), which describes a vertex in a plane mesh
 // Returns a normalized position (x, y, z); x and y in range from [0, 1), and z is obtained from getHeight()
-glm::vec3 TerrainGenerator::getPosition(int row, int col) {
+glm::vec3 TerrainGenerator::getPosition(int row, int col, float height, float noise) {
     // Normalizing the planar coordinates to a unit square
     // makes scaling independent of sampling resolution.
     float x = 1.0 * row / m_resolution;
     float y = 1.0 * col / m_resolution;
-    int y0 = m_resolution - 1 - row;
-    int x0 = col; //(m_resolution-1) - col; // flips horizontally - images coming out mirrored before
-    int pixel = x0+y0*m_resolution;
-    pixel = std::clamp(pixel,0,int(m_canvas.size())-1);
     //std::cout << m_canvas[pixel].x;
-    float z = getHeight(x, y);
+    float z = getHeight(x, y, height, noise);
     return glm::vec3(x,y,z);
 }
 
 // ================== Students, please focus on the code below this point
+
+bool TerrainGenerator::rgbEquals(glm::vec4 colVec4, RGBA rgba) {
+    if (fToUint(colVec4[0]) == rgba.r){
+        if (fToUint(colVec4[1]) == rgba.g){
+            if (fToUint(colVec4[2]) == rgba.b){
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+uint8_t TerrainGenerator::fToUint(float x) {
+    int a = int(round(x*255.f));
+    return std::min(std::max(a,0),255);
+}
 
 float TerrainGenerator::getHeightMap(int x, int y) {
     return m_heightMap[x+y*m_resolution];
@@ -210,8 +208,9 @@ float interpolate(float A, float B, float alpha) {
 
 // Takes a normalized (x, y) position, in range [0,1)
 // Returns a height value, z, by sampling a noise function
-float TerrainGenerator::getHeight(float x, float y) {
-
+float TerrainGenerator::getHeight(float x, float y, float height, float noise) {
+    x = 2*x;
+    y = 2*y;
     // Task 6: modify this call to produce noise of a different frequency
     float z1 = computePerlin(x, y);
     float z2 = computePerlin(x*2,y*2)/2;
@@ -222,7 +221,8 @@ float TerrainGenerator::getHeight(float x, float y) {
     // Task 7: combine multiple different octaves of noise to produce fractal perlin noise
 
     // Return 0 as placeholder
-    return z1+z2+z3+z4+z5;
+    //
+    return height + noise*(z1+z2+z3+z4+z5);
 
 
 }
@@ -234,58 +234,33 @@ float TerrainGenerator::getHeight(float x, float y) {
 //    making the frequency higher and likewise with y.
 
 // Computes the normal of a vertex by averaging neighbors
-glm::vec3 TerrainGenerator::getNormal(int row, int col) {
+glm::vec3 TerrainGenerator::getNormal(int row, int col, float height, float noise) {
+    //glm::vec3 tl, glm::vec3 tm, glm::vec3 tr,
+    //glm::vec3 ml, glm::vec3 mm, glm::vec3 mr,
+    //   glm::vec3 bl, glm::vec3 bm, glm::vec3 br
     // Task 9: Compute the average normal for the given input indices
 
-    glm::vec3 V = getPosition(row,col);
+    glm::vec3 mm = getPosition(row, col, height, noise);
     glm::vec3 sumNormals(0.f,0.f,0.f);
 
-//    glm::vec3 n1 = getPosition(row - 1, col - 1);
-//    glm::vec3 n2 = getPosition(row - 1, col + 0);
-//    glm::vec3 n3 = getPosition(row - 1, col + 1);
-//    glm::vec3 n4 = getPosition(row + 0, col + 1);
-//    glm::vec3 n5 = getPosition(row + 1, col + 1); // clockwise rotation starting at row-1 col-1
-//    glm::vec3 n6 = getPosition(row + 1, col + 0); // Why doesnt this work???!!!
-//    glm::vec3 n7 = getPosition(row + 1, col - 1);
-//    glm::vec3 n8 = getPosition(row + 0, col - 1);
+    glm::vec3 tl = getPosition(row - 1, col - 1, height, noise);
+    glm::vec3 ml = getPosition(row + 0, col - 1, height, noise);
+    glm::vec3 bl = getPosition(row + 1, col - 1, height, noise);
+    glm::vec3 bm = getPosition(row + 1, col - 0, height, noise);
+    glm::vec3 br = getPosition(row + 1, col + 1, height, noise);
+    glm::vec3 mr = getPosition(row + 0, col + 1, height, noise);
+    glm::vec3 tr = getPosition(row - 1, col + 1, height, noise);
+    glm::vec3 tm = getPosition(row - 1, col - 0, height, noise);
 
-    glm::vec3 n1 = getPosition(row - 1, col - 1);
-    glm::vec3 n2 = getPosition(row + 0, col - 1);
-    glm::vec3 n3 = getPosition(row + 1, col - 1);
-    glm::vec3 n4 = getPosition(row + 1, col - 0);
-    glm::vec3 n5 = getPosition(row + 1, col + 1);
-    glm::vec3 n6 = getPosition(row + 0, col + 1);
-    glm::vec3 n7 = getPosition(row - 1, col + 1);
-    glm::vec3 n8 = getPosition(row - 1, col - 0);
-
-    sumNormals = sumNormals + glm::cross(n1-V,n2-V);
-    sumNormals = sumNormals + glm::cross(n2-V,n3-V);
-    sumNormals = sumNormals + glm::cross(n3-V,n4-V);
-    sumNormals = sumNormals + glm::cross(n4-V,n5-V);
-    sumNormals = sumNormals + glm::cross(n5-V,n6-V);
-    sumNormals = sumNormals + glm::cross(n6-V,n7-V);
-    sumNormals = sumNormals + glm::cross(n7-V,n8-V);
-    sumNormals = sumNormals + glm::cross(n8-V,n1-V);
+    sumNormals = sumNormals + glm::cross(tl-mm,ml-mm);
+    sumNormals = sumNormals + glm::cross(ml-mm,bl-mm);
+    sumNormals = sumNormals + glm::cross(bl-mm,bm-mm);
+    sumNormals = sumNormals + glm::cross(bm-mm,br-mm);
+    sumNormals = sumNormals + glm::cross(br-mm,mr-mm);
+    sumNormals = sumNormals + glm::cross(mr-mm,tr-mm);
+    sumNormals = sumNormals + glm::cross(tr-mm,tm-mm);
+    sumNormals = sumNormals + glm::cross(tm-mm,tl-mm);
     return glm::normalize(sumNormals);
-
-
-//    glm::vec3 V = getPosition(row,col);
-//    std::vector<glm::vec3> points(8);
-//    int index = 0;
-//    for (int i=-1;i<2;i++) {
-//        for (int j=-1;j<2;j++) {
-//            if (j!=0 && i!=0) {
-//                points[index] = getPosition(row+i,col+j);
-//                index++;
-//            }
-//        }
-//    }
-
-//    glm::vec3 sumNormals = (glm::cross((points[7]-V),(points[0]-V)));
-//    for (int i=0;i<7;i++) {
-//        sumNormals += glm::cross(points[i]-V,points[i+1]-V);
-//    }
-    //return glm::normalize(sumNormals);
 }
 
 
@@ -341,7 +316,8 @@ float TerrainGenerator::computePerlin(float x, float y) {
     float D = glm::dot(o4,sampleRandomVector(p4.x,p4.y)); // dot product between bottom-left direction and its offset
 
     // Task 5: Debug this line to properly use your interpolation function to produce the correct value
-    return interpolate(interpolate(A, B, o1[0]), interpolate(D, C, o1[0]), o1[1]);
+    float a = interpolate(interpolate(A, B, o1[0]), interpolate(D, C, o1[0]), o1[1]);
+    return a;//interpolate(interpolate(A, B, o1[0]), interpolate(D, C, o1[0]), o1[1]);
 
     // Return 0 as a placeholder
     //return 0;

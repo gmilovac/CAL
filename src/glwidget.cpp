@@ -49,7 +49,7 @@ void GLWidget::initializeGL()
 
     h[0] = m_col;
 
-    std::vector<GLfloat> verts = m_terrain.generateTerrain(m_canvasData);
+    std::vector<GLfloat> verts = m_terrain.generateTerrain(m_canvasData, m_noiseData, m_heightData);
 
     m_terrainVbo.create();
     m_terrainVbo.bind();
@@ -198,6 +198,9 @@ void GLWidget::rebuildMatrices() {
     update();
 }
 
-void GLWidget::renderTerrain(std::vector<glm::vec4> canvas) {
+void GLWidget::renderTerrain(std::vector<glm::vec4> canvas, std::vector<float> noise, std::vector<float> height) {
     m_canvasData = canvas;
+    m_noiseData = noise;
+    m_heightData = height;
+
 }

@@ -66,10 +66,16 @@ MainWindow::MainWindow()
     addRadioButton(biomeColors, brushLayout, "Ocean", rgbEquals(settings.brushColor,OCEAN_COLOR), [this]{setBrushColor(OCEAN_COLOR); });
     addRadioButton(biomeColors, brushLayout, "Lake", rgbEquals(settings.brushColor,LAKE_COLOR), [this]{setBrushColor(LAKE_COLOR); });
 
+    //addRadioButton(filterLayout, "Blur", settings.filterType == FILTER_BLUR, [this]{ setFilterType(FILTER_BLUR); });
+    addSpinBox(brushLayout, "Blur Radius", 0, 100, 1, settings.blurRadius, [this](int value){ setIntVal(settings.blurRadius, value); });
+
     addPushButton(brushLayout, "Generate Terrain", &MainWindow::onGenerateTerrainButtonClick);
     addPushButton(brushLayout, "Clear canvas", &MainWindow::onClearButtonClick);
     addPushButton(brushLayout, "Save Image", &MainWindow::onSaveButtonClick);
     addPushButton(brushLayout, "Load Image", &MainWindow::onUploadButtonClick);
+    addPushButton(brushLayout, "Noise Map", &MainWindow::onNoiseMapClick);
+    addPushButton(brushLayout, "Height Map", &MainWindow::onHeightMapClick);
+    addPushButton(brushLayout, "Blur", &MainWindow::onBlurClick);
 }
 
 /**
@@ -149,10 +155,12 @@ void MainWindow::setIntVal(int &setValue, int newValue) {
 // ------ PUSH BUTTON FUNCTIONS ------
 
 void MainWindow::onGenerateTerrainButtonClick() {
-    std::vector<glm::vec4> a = m_canvas->getCanvasData();
+    std::vector<glm::vec4> canvasData = m_canvas->getCanvasData();
+    std::vector<float> noiseData = m_canvas->blurImage(m_canvas->getNoiseMap());
+    std::vector<float> heightData = m_canvas->blurImage(m_canvas->getHeightMap());
     m_terrainWindow = new TerrainWindow();
     m_terrainWindow->newWidget();
-    m_terrainWindow->glWidget->renderTerrain(a);
+    m_terrainWindow->glWidget->renderTerrain(canvasData,noiseData,heightData);
     m_terrainWindow->resize(800,600);
     m_terrainWindow->show();
 }
@@ -163,7 +171,7 @@ void MainWindow::onClearButtonClick() {
 
 void MainWindow::onUploadButtonClick() {
     // Get new image path selected by user
-    QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), QDir::homePath(), tr("Image Files (*.png *.jpg *.jpeg)"));
+    QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), QDir::currentPath(), tr("Image Files (*.png *.jpg *.jpeg)"));
     if (file.isEmpty()) { return; }
     settings.imagePath = file;
 
@@ -171,6 +179,18 @@ void MainWindow::onUploadButtonClick() {
     m_canvas->loadImageFromFile(settings.imagePath);
 
     m_canvas->settingsChanged();
+}
+
+void MainWindow::onBlurClick() {
+   // m_canvas->blurImage(m_canvas->data);
+
+}
+void MainWindow::onHeightMapClick() {
+    m_canvas->blurImage(m_canvas->getHeightMap());
+}
+void MainWindow::onNoiseMapClick() {
+    m_canvas->blurImage(m_canvas->getNoiseMap());
+
 }
 
 bool MainWindow::rgbEquals(RGBA x, RGBA y) {

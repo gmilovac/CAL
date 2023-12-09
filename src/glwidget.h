@@ -17,7 +17,7 @@ class GLWidget : public QOpenGLWidget
 public:
     GLWidget(QWidget *parent = nullptr);
     ~GLWidget();
-    void renderTerrain(std::vector<glm::vec4> canvas);
+    void renderTerrain(std::vector<glm::vec4> canvas, std::vector<float> noise, std::vector<float> height);
     glm::vec4 m_col = glm::vec4(1.f,0.f,0.f,1.f);
 
 protected:
@@ -40,6 +40,8 @@ private:
 
     // ==== Canvas Variables =======
     std::vector<glm::vec4> m_canvasData;
+    std::vector<float> m_noiseData;
+    std::vector<float> m_heightData;
     int m_canvasWidth;
     int m_canvasHeight;
     // =============================
