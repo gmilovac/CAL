@@ -33,7 +33,7 @@ void GLWidget::initializeGL()
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
 
-    glClearColor(0, 0, 0, 1);
+    glClearColor(0.4f, 0.6f, 1.f, 1); // sky color
     m_program = new QOpenGLShaderProgram;
     m_program->addShaderFromSourceFile(QOpenGLShader::Vertex,":/resources/shader/vertex.vert");
     m_program->addShaderFromSourceFile(QOpenGLShader::Fragment,":/resources/shader/fragment.frag");

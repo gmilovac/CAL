@@ -48,6 +48,7 @@ private:
     bool m_isDown;
     void editCanvas(int x, int y);
     std::vector<int> getMask(int x, int y);
+    std::vector<float> createGausianKernel(int r);
 
     //For fix alpha blending below
     std::set<int> visitedPixels; // keeps track of visited pixels for each mouseDown event, allows for constant opacity for a given brush stroke

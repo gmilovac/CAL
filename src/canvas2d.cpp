@@ -141,7 +141,7 @@ void Canvas2D::fill(RGBA col, int x, int y, int depth) {
 }
 
 std::vector<float> Canvas2D::blurImage(std::vector<float> input) {
-    std::vector<float> tblur(1.f+2.f*settings.blurRadius, 1.f/(1.f+2.f*settings.blurRadius));
+    std::vector<float> tblur = createGausianKernel(settings.blurRadius);
     std::vector<float> output(input.size());
     output = convolve(input,m_width,m_height,tblur,tblur);
 //    for (int i=0; i<input.size(); i++) {
@@ -154,6 +154,27 @@ std::vector<float> Canvas2D::blurImage(std::vector<float> input) {
    // displayImage();
     return output;
 }
+
+std::vector<float> Canvas2D::createGausianKernel(int r) {
+    int size = 2*r+1;
+    std::vector<float> k(size);
+    float sd = (static_cast<float>(r))/3;
+    for (int i=0;i<=r;i++) {
+    float x = r - i;
+    k[i] = (1/(sqrt(2*M_PI*pow(sd,2))))*(exp(-(pow(x,2))/(2*pow(sd,2))));
+    k[size-i-1]=k[i]; // makes distribution symetrical
+    }
+    //normalize kernel
+    float sum = 0.0f;
+    for (int i=0;i<size;i++) {
+    sum += k[i];
+    }
+    for (int i=0;i<size;i++) {
+    k[i] = k[i]/sum;
+    }
+    return k;
+}
+
 std::vector<float> Canvas2D::getHeightMap() {
     std::vector<float> heightMap(m_data.size());
     for (int i=0; i<heightMap.size(); i++) {

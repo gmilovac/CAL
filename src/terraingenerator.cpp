@@ -16,6 +16,7 @@ TerrainGenerator::TerrainGenerator()
   // Define resolution of terrain generation
   m_resolution = 512;
   m_heightMap.reserve(m_resolution*m_resolution);
+  m_noiseMap.reserve(m_resolution*m_resolution);
 
   // Generate random vector lookup table
   m_lookupSize = 1024;
@@ -52,6 +53,16 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
     m_resolution = 512; //int(sqrt(flat.size()));
     verts.reserve(m_resolution * m_resolution * 6);
 
+
+    for (int x=0; x<m_resolution; x++) {
+    for (int y=0; y<m_resolution; y++) {
+        int row = y;
+        int col = (m_resolution-1) - x;
+        m_heightMap[x+y*m_resolution] = heightData[col+row*m_resolution];
+        m_noiseMap[x+y*m_resolution] = noiseData[col+row*m_resolution];
+    }
+    }
+
     for(int x = 0; x < m_resolution; x++) {
         for(int y = 0; y < m_resolution; y++) {
             int x1 = x;
@@ -69,14 +80,19 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
             glm::vec4 c1 = canvas[col1+row1*m_resolution];
             if (c1.x==1.f && c1.y==1.f && c1.z==1.f) {continue;}
 
-            glm::vec3 p0 = getPosition(x1,y1,heightData[col1+row1*m_resolution], noiseData[col1+row1*m_resolution]);
-            glm::vec3 p1 = getPosition(x2,y1,heightData[col2+row1*m_resolution], noiseData[col2+row1*m_resolution]);
-            glm::vec3 p2 = getPosition(x2,y2,heightData[col2+row2*m_resolution], noiseData[col2+row2*m_resolution]);
-            glm::vec3 p3 = getPosition(x1,y2,heightData[col1+row2*m_resolution], noiseData[col1+row2*m_resolution]); // IN X,Z,Y format or (vec2 coordinate, height) format
+//            glm::vec3 p0 = getPosition(x1,y1,heightData[col1+row1*m_resolution], noiseData[col1+row1*m_resolution]);
+//            glm::vec3 p1 = getPosition(x2,y1,heightData[col2+row1*m_resolution], noiseData[col2+row1*m_resolution]);
+//            glm::vec3 p2 = getPosition(x2,y2,heightData[col2+row2*m_resolution], noiseData[col2+row2*m_resolution]);
+//            glm::vec3 p3 = getPosition(x1,y2,heightData[col1+row2*m_resolution], noiseData[col1+row2*m_resolution]); // IN X,Z,Y format or (vec2 coordinate, height) format
+            glm::vec3 p0 = getPosition(x1,y1);
+            glm::vec3 p1 = getPosition(x2,y1);
+            glm::vec3 p2 = getPosition(x2,y2);
+            glm::vec3 p3 = getPosition(x1,y2);
 
 
             if (rgbEquals(c1,MainWindow::OCEAN_COLOR)) {
-                if (p1.z != 0.f || p2.z != 0.f || p3.z != 0.f || p0.z != 0.f) {
+                float oceanThreshold = 0.01f;
+                if (p1.z > oceanThreshold || p2.z > oceanThreshold || p3.z > oceanThreshold || p0.z > oceanThreshold) {
                     c1 = glm::vec4(0.988f,0.776f,0.376f,1.f); // sand color
                 }
             }
@@ -89,10 +105,14 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
 
 
 
-            glm::vec3 n0 = getNormal(x1,y1,heightData[col1+row1*m_resolution], noiseData[col1+row1*m_resolution]);
-            glm::vec3 n1 = getNormal(x2,y1,heightData[col2+row1*m_resolution], noiseData[col2+row1*m_resolution]);
-            glm::vec3 n2 = getNormal(x2,y2,heightData[col2+row2*m_resolution], noiseData[col2+row2*m_resolution]);
-            glm::vec3 n3 = getNormal(x1,y2,heightData[col1+row2*m_resolution], noiseData[col1+row2*m_resolution]);
+            glm::vec3 n0 = getNormal(x1,y1);
+            glm::vec3 n1 = getNormal(x2,y1);
+            glm::vec3 n2 = getNormal(x2,y2);
+            glm::vec3 n3 = getNormal(x1,y2);
+//            glm::vec3 n0 = getNormal(x1,y1,heightData[col1+row1*m_resolution], noiseData[col1+row1*m_resolution]);
+//            glm::vec3 n1 = getNormal(x2,y1,heightData[col2+row1*m_resolution], noiseData[col2+row1*m_resolution]);
+//            glm::vec3 n2 = getNormal(x2,y2,heightData[col2+row2*m_resolution], noiseData[col2+row2*m_resolution]);
+//            glm::vec3 n3 = getNormal(x1,y2,heightData[col1+row2*m_resolution], noiseData[col1+row2*m_resolution]);
             addPointToVector(p0, verts);
             addPointToVector(n0, verts);
             addPointToVector(glm::vec3(c1), verts);
@@ -163,11 +183,15 @@ glm::vec2 TerrainGenerator::sampleRandomVector(int row, int col)
 
 // Takes a grid coordinate (row, col), [0, m_resolution), which describes a vertex in a plane mesh
 // Returns a normalized position (x, y, z); x and y in range from [0, 1), and z is obtained from getHeight()
-glm::vec3 TerrainGenerator::getPosition(int row, int col, float height, float noise) {
+glm::vec3 TerrainGenerator::getPosition(int xIn, int yIn) {
     // Normalizing the planar coordinates to a unit square
     // makes scaling independent of sampling resolution.
-    float x = 1.0 * row / m_resolution;
-    float y = 1.0 * col / m_resolution;
+    int x0 = std::clamp(xIn, 0, m_resolution-1);
+    int y0 = std::clamp(yIn, 0, m_resolution-1);
+    float height = getHeightMap(x0, y0);
+    float noise = getNoiseMap(x0,y0);
+    float x = 1.0 * xIn / m_resolution;
+    float y = 1.0 * yIn / m_resolution;
     //std::cout << m_canvas[pixel].x;
     float z = getHeight(x, y, height, noise);
     return glm::vec3(x,y,z);
@@ -196,6 +220,10 @@ float TerrainGenerator::getHeightMap(int x, int y) {
     return m_heightMap[x+y*m_resolution];
 }
 
+float TerrainGenerator::getNoiseMap(int x, int y) {
+    return m_noiseMap[x+y*m_resolution];
+}
+
 float ease(float alpha) {
     return 3.f*pow(alpha,2) - 2.f*pow(alpha,3);
 }
@@ -222,7 +250,7 @@ float TerrainGenerator::getHeight(float x, float y, float height, float noise) {
 
     // Return 0 as placeholder
     //
-    return height + noise*(z1+z2+z3+z4+z5);
+    return height+noise*(z1+z2+z3+z4+z5);
 
 
 }
@@ -234,23 +262,42 @@ float TerrainGenerator::getHeight(float x, float y, float height, float noise) {
 //    making the frequency higher and likewise with y.
 
 // Computes the normal of a vertex by averaging neighbors
-glm::vec3 TerrainGenerator::getNormal(int row, int col, float height, float noise) {
+glm::vec3 TerrainGenerator::getNormal(int x, int y) {
     //glm::vec3 tl, glm::vec3 tm, glm::vec3 tr,
     //glm::vec3 ml, glm::vec3 mm, glm::vec3 mr,
     //   glm::vec3 bl, glm::vec3 bm, glm::vec3 br
     // Task 9: Compute the average normal for the given input indices
+//    int x1 = x;
+//    int y1 = y;
+//    int x2 = x + 1;
+//    int y2 = y + 1;
 
-    glm::vec3 mm = getPosition(row, col, height, noise);
+//    int row0 = row;
+//    int col0 = col; // flips horizontally - images coming out mirrored before
+//    int row1 = std::clamp((row-1), 0, m_resolution-1);
+//    int col1 = std::clamp((col+1), 0, m_resolution-1);
+//    int rowm1 = std::clamp((row+1), 0, m_resolution-1);
+//    int colm1 = std::clamp((col-1), 0, m_resolution-1);
+
+//    int row0 = row;//std::clamp((m_resolution-1) - y,0,m_resolution-1);
+//    int col0 = col;//(m_resolution-1) - x; // flips horizontally - images coming out mirrored before
+//    int row1 = row0;
+//    int col1 = col0;
+//    int rowm1 = row0;
+//    int colm1 = col0;
+
+
+    glm::vec3 mm = getPosition(x, y);
     glm::vec3 sumNormals(0.f,0.f,0.f);
 
-    glm::vec3 tl = getPosition(row - 1, col - 1, height, noise);
-    glm::vec3 ml = getPosition(row + 0, col - 1, height, noise);
-    glm::vec3 bl = getPosition(row + 1, col - 1, height, noise);
-    glm::vec3 bm = getPosition(row + 1, col - 0, height, noise);
-    glm::vec3 br = getPosition(row + 1, col + 1, height, noise);
-    glm::vec3 mr = getPosition(row + 0, col + 1, height, noise);
-    glm::vec3 tr = getPosition(row - 1, col + 1, height, noise);
-    glm::vec3 tm = getPosition(row - 1, col - 0, height, noise);
+    glm::vec3 tl = getPosition(x - 1, y - 1);
+    glm::vec3 ml = getPosition(x + 0, y - 1);
+    glm::vec3 bl = getPosition(x + 1, y - 1);
+    glm::vec3 bm = getPosition(x + 1, y - 0);
+    glm::vec3 br = getPosition(x + 1, y + 1);
+    glm::vec3 mr = getPosition(x + 0, y + 1);
+    glm::vec3 tr = getPosition(x - 1, y + 1);
+    glm::vec3 tm = getPosition(x - 1, y - 0);
 
     sumNormals = sumNormals + glm::cross(tl-mm,ml-mm);
     sumNormals = sumNormals + glm::cross(ml-mm,bl-mm);
