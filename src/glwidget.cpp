@@ -76,8 +76,8 @@ void GLWidget::initializeGL()
 
 
     m_cameraPos = QVector3D(1.f,1.f,1.f);
-    m_cameraLook = QVector3D(0.f,0.f,0.f);
-    m_cameraUp = QVector3D(0.f,0.f,1.f);
+    m_cameraLook = QVector3D(0.1f,0.1f,0.1f);
+    m_cameraUp = QVector3D(0.f,0.f,0.1f);
     //camera = Camera(m_cameraPos,m_cameraLook,m_cameraUp, width() / height(), 45.0f, 100.0f, 0.01f);
     m_camera.lookAt(m_cameraPos,m_cameraLook,m_cameraUp);
 
@@ -94,6 +94,7 @@ void GLWidget::paintGL()
     m_program->setUniformValue(m_projMatrixLoc, m_proj);
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
     m_program->setUniformValue(m_program->uniformLocation("wireshade"),m_terrain.m_wireshade);
+    //m_program->setUniformValue(m_program->uniformLocation("bump"),bump);
 
     int res = m_terrain.getResolution();
 
@@ -118,36 +119,30 @@ void GLWidget::keyReleaseEvent(QKeyEvent *event) {
 }
 
 void GLWidget::timerEvent(QTimerEvent *event) {
-//    int elapsedms   = m_elapsedTimer.elapsed();
-//    float deltaTime = elapsedms * 0.001f;
-//    m_elapsedTimer.restart();
-//
-//    if (m_keyMap[Qt::Key_W]){
-//        std::cout << "W" << std::endl;
-//        m_cameraPos = m_cameraPos + deltaTime * m_cameraLook;
-//        m_camera.lookAt(m_cameraPos,m_cameraPos + m_cameraLook,m_cameraUp);
-//        m_proj.setToIdentity();
-//        m_proj.perspective(45.0f, 1.0 * width() / height(), 0.01f, 100.0f);
-//    }
-//    if (m_keyMap[Qt::Key_S]){
-//        std::cout << "S" << std::endl;
-//        m_cameraPos = m_cameraPos - deltaTime * m_cameraLook;
-//        m_camera.lookAt(m_cameraPos,m_cameraLook,m_cameraUp);
-//    }
-//    if (m_keyMap[Qt::Key_A]){
-//        cross(m_cameraLook,m_cameraUp);
-//        m_camera.translate(deltaTime);
-//    }
-//    if (m_keyMap[Qt::Key_D]){
-//        moveCamera(5.f * deltaTime * glm::normalize(glm::vec4(glm::cross(glm::vec3(m_data.cameraData.look), glm::vec3(m_data.cameraData.up)), 1.f)));
-//    }
-//    if (m_keyMap[Qt::Key_Control]){
-//        moveCamera(5.f * deltaTime * glm::vec4(0.f, -1.f, 0.f, 0.f));
-//    }
-//    if (m_keyMap[Qt::Key_Space]){
-//        moveCamera(5.f * deltaTime * glm::vec4(0.f, 1.f, 0.f, 0.f));
-//    }
-//    update();
+    int elapsedms   = m_elapsedTimer.elapsed();
+    float deltaTime = elapsedms * 0.001f;
+    m_elapsedTimer.restart();
+
+
+    if (m_keyMap[Qt::Key_W]){
+        m_world.translate(deltaTime * QVector3D(0.2f, 0.f, 0.f));
+    }
+    if (m_keyMap[Qt::Key_S]){
+        m_world.translate(-deltaTime * QVector3D(0.2f, 0.f, 0.f));
+    }
+    if (m_keyMap[Qt::Key_A]){
+        m_world.translate(deltaTime * QVector3D(0.f, 0.2f, 0.f));
+    }
+    if (m_keyMap[Qt::Key_D]){
+        m_world.translate(-deltaTime * QVector3D(0.f, 0.2f, 0.f));
+    }
+    if (m_keyMap[Qt::Key_Control]){
+        m_world.translate(deltaTime * QVector3D(0.f, 0.f, 0.2f));
+    }
+    if (m_keyMap[Qt::Key_Space]){
+        m_world.translate(-deltaTime * QVector3D(0.f, 0.f, 0.2f));
+    }
+    rebuildMatrices();
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event) {
@@ -162,7 +157,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void GLWidget::wheelEvent(QWheelEvent *event) {
-    m_zoom -= event->angleDelta().y() / 100.f;
+    m_zoom -= event->angleDelta().y() / 200.f;
     rebuildMatrices();
 }
 
@@ -170,22 +165,11 @@ void GLWidget::rebuildMatrices() {
     m_camera.setToIdentity();
     QMatrix4x4 rot;
     rot.setToIdentity();
-//    QVector3D axis = QVector3D::crossProduct(m_cameraLook, m_cameraUp);
-//    rot.rotate(m_angleX, axis);
-//    m_cameraLook = rot * m_cameraLook;
-//    m_cameraUp = rot * m_cameraUp;
-
-    rot.rotate(-10 * m_angleX,QVector3D(0,0,1));
-    QVector3D eye = m_cameraPos;
+    rot.rotate(-3 * m_angleX,QVector3D(0,0,1));
+    QVector3D eye = QVector3D(1,1,1);
     eye = rot.map(eye);
-//    QMatrix4x4 rot2;
-//    rot.setToIdentity();
-//    rot2.rotate(m_angleY, QVector3D(0, 1, 0));
-//    m_cameraLook = rot2 * m_cameraLook;
-//    m_cameraUp = rot2 * m_cameraUp;
-
     rot.setToIdentity();
-    rot.rotate(-10 * m_angleY,QVector3D::crossProduct(QVector3D(0,1,0),eye));
+    rot.rotate(-3 * m_angleY,QVector3D::crossProduct(QVector3D(0,0,1),eye));
     eye = rot.map(eye);
 
     eye = eye * m_zoom;

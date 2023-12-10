@@ -6,10 +6,13 @@ in vec3 lightDir;
 
 uniform bool wireshade;
 
+//uniform vec3 offset;
+
 out  vec4 fragColor;
 
 void main(void)
 {
+    //norm = norm + random()
     if (wireshade) {
         fragColor = vec4(color,1);
     } else {

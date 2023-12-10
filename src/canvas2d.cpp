@@ -183,10 +183,10 @@ std::vector<float> Canvas2D::getHeightMap() {
         heightMap[i] = 0.2f;
     }
     else if (rgbEquals(color, MainWindow::FOREST_COLOR)) {
-        heightMap[i] = 0.08f;
+        heightMap[i] = 0.1f;
     }
     else if (rgbEquals(color, MainWindow::GRASSLAND_COLOR)) {
-        heightMap[i] = 0.1f;
+        heightMap[i] = 0.07f;
     }
     else if (rgbEquals(color, MainWindow::DESERT_COLOR)) {
         heightMap[i] = 0.05f;
@@ -213,16 +213,16 @@ std::vector<float> Canvas2D::getNoiseMap() {
     for (int i=0; i<noiseMap.size(); i++) {
     RGBA color = m_data[i];
     if (rgbEquals(color, MainWindow::MOUNTAINS_COLOR)) {
-        noiseMap[i] = 1.f;
+        noiseMap[i] = 0.8f;
     }
     else if (rgbEquals(color, MainWindow::FOREST_COLOR)) {
-        noiseMap[i] = 0.1f;
-    }
-    else if (rgbEquals(color, MainWindow::GRASSLAND_COLOR)) {
         noiseMap[i] = 0.2f;
     }
+    else if (rgbEquals(color, MainWindow::GRASSLAND_COLOR)) {
+        noiseMap[i] = 0.1f;
+    }
     else if (rgbEquals(color, MainWindow::DESERT_COLOR)) {
-        noiseMap[i] = 0.3f;
+        noiseMap[i] = 0.1f;
     }
     else if (rgbEquals(color, MainWindow::LAKE_COLOR)) {
         noiseMap[i] = 0.0f;

@@ -6,19 +6,35 @@
 #include "rgba.h"
 #include "mainwindow.h"
 
+std::vector<float> generateRockNormalMap(int width, int height) {
+    std::vector<float> normalMap;
+    normalMap.reserve(width * height * 3);  // Each texel has three components (x, y, z) for the normal vector
+
+    // Generate a simple normal map for rocks (e.g., all normals pointing upward)
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            // In this example, all normals are pointing upward (positive Z-axis)
+            normalMap.push_back(0.0f);  // x-component
+            normalMap.push_back(0.0f);  // y-component
+            normalMap.push_back(1.0f);  // z-component
+        }
+    }
+
+    return normalMap;
+}
+
 // Constructor
 TerrainGenerator::TerrainGenerator()
 {
-  // Task 8: turn off wireframe shading
   m_wireshade = false; // STENCIL CODE
-  // m_wireshade = false; // TA SOLUTION
 
   // Define resolution of terrain generation
   m_resolution = 512;
   m_heightMap.reserve(m_resolution*m_resolution);
   m_noiseMap.reserve(m_resolution*m_resolution);
+  m_rocks = generateRockNormalMap(m_resolution, m_resolution);
 
-  // Generate random vector lookup table
+    // Generate random vector lookup table
   m_lookupSize = 1024;
   m_randVecLookup.reserve(m_lookupSize);
 
@@ -44,6 +60,13 @@ void addPointToVector(glm::vec3 point, std::vector<float>& vector) {
     vector.push_back(point.x);
     vector.push_back(point.y);
     vector.push_back(point.z);
+}
+
+glm::vec3 TerrainGenerator::perturbNormalWithBumpMap(glm::vec3 normal, int x, int y, const std::vector<float>& normalMapData) {
+    // Assuming normalMapData is a linear array representing the normal map
+    float intensity = normalMapData[x + y * m_resolution];
+    // Perturb the normal based on the intensity
+    return normalize(normal + intensity * (normal - glm::vec3(0.5, 0.5, 0.5)));
 }
 
 // Generates the geometry of the output triangle mesh
@@ -89,18 +112,21 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
             glm::vec3 p2 = getPosition(x2,y2);
             glm::vec3 p3 = getPosition(x1,y2);
 
-
             if (rgbEquals(c1,MainWindow::OCEAN_COLOR)) {
                 float oceanThreshold = 0.01f;
                 if (p1.z > oceanThreshold || p2.z > oceanThreshold || p3.z > oceanThreshold || p0.z > oceanThreshold) {
                     c1 = glm::vec4(0.988f,0.776f,0.376f,1.f); // sand color
                 }
             }
-            float mountainThreshold = 0.12;
 
+            float mountainThreshold = 0.12;
             if (heightData[col1+row1*m_resolution] > mountainThreshold || heightData[col2+row1*m_resolution] > mountainThreshold ||
                 heightData[col2+row2*m_resolution] > mountainThreshold || heightData[col1+row2*m_resolution] > mountainThreshold) {
-                c1 = glm::vec4(.5,.5,.5,1);
+                c1 = glm::vec4(.5,.5,.5,1); // mountain color
+            }
+
+            if (p1.z > 0.25f || p2.z > 0.25f || p3.z > 0.25f || p0.z > 0.25f) {
+                c1 = glm::vec4(1.f,1.f,1.f,1.f); // snow color
             }
 
 
@@ -113,6 +139,14 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
 //            glm::vec3 n1 = getNormal(x2,y1,heightData[col2+row1*m_resolution], noiseData[col2+row1*m_resolution]);
 //            glm::vec3 n2 = getNormal(x2,y2,heightData[col2+row2*m_resolution], noiseData[col2+row2*m_resolution]);
 //            glm::vec3 n3 = getNormal(x1,y2,heightData[col1+row2*m_resolution], noiseData[col1+row2*m_resolution]);
+
+//            if (rgbEquals(c1, MainWindow::MOUNTAINS_COLOR)) {
+//                n0 = perturbNormalWithBumpMap(n0, x, y, m_rocks);
+//                n1 = perturbNormalWithBumpMap(n1, x, y, m_rocks);
+//                n2 = perturbNormalWithBumpMap(n2, x, y, m_rocks);
+//                n3 = perturbNormalWithBumpMap(n3, x, y, m_rocks);
+//            }
+
             addPointToVector(p0, verts);
             addPointToVector(n0, verts);
             addPointToVector(glm::vec3(c1), verts);
@@ -143,36 +177,6 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
     return verts;
 }
 
-/*
- *             if (rgbEquals(c1,MainWindow::MOUNTAINS_COLOR)) {
-
-
-            }
-
-            else if (rgbEquals(c1,MainWindow::FOREST_COLOR)) {
-
-
-            }
-
-            else if (rgbEquals(c1,MainWindow::GRASSLAND_COLOR)) {
-
-            }
-
-            else if (rgbEquals(c1,MainWindow::DESERT_COLOR)) {
-
-
-            }
-
-            else if (rgbEquals(c1,MainWindow::LAKE_COLOR)) {
-
-
-
-            }
-
-
- *
- */
-
 // Samples the (infinite) random vector grid at (row, col)
 glm::vec2 TerrainGenerator::sampleRandomVector(int row, int col)
 {
@@ -193,7 +197,7 @@ glm::vec3 TerrainGenerator::getPosition(int xIn, int yIn) {
     float x = 1.0 * xIn / m_resolution;
     float y = 1.0 * yIn / m_resolution;
     //std::cout << m_canvas[pixel].x;
-    float z = getHeight(x, y, height, noise);
+    float z = abs(getHeight(x, y, height, noise)); //Don't let it go below zero
     return glm::vec3(x,y,z);
 }
 
@@ -207,7 +211,6 @@ bool TerrainGenerator::rgbEquals(glm::vec4 colVec4, RGBA rgba) {
             }
         }
     }
-
     return false;
 }
 
@@ -227,10 +230,10 @@ float TerrainGenerator::getNoiseMap(int x, int y) {
 float ease(float alpha) {
     return 3.f*pow(alpha,2) - 2.f*pow(alpha,3);
 }
+
 // Helper for computePerlin() and, possibly, getColor()
 float interpolate(float A, float B, float alpha) {
     // Task 4: implement your easing/interpolation function below
-
     return A + ease(alpha)*(B-A);
 }
 
@@ -239,14 +242,11 @@ float interpolate(float A, float B, float alpha) {
 float TerrainGenerator::getHeight(float x, float y, float height, float noise) {
     x = 2*x;
     y = 2*y;
-    // Task 6: modify this call to produce noise of a different frequency
     float z1 = computePerlin(x, y);
     float z2 = computePerlin(x*2,y*2)/2;
     float z3 = computePerlin(x*4,y*4)/4;
     float z4 = computePerlin(x*8,y*8)/8;
     float z5 = computePerlin(x*16,y*16)/16;
-
-    // Task 7: combine multiple different octaves of noise to produce fractal perlin noise
 
     // Return 0 as placeholder
     //
@@ -254,12 +254,6 @@ float TerrainGenerator::getHeight(float x, float y, float height, float noise) {
 
 
 }
-//    Task 6:
-//    Scaling z, the output of getHeight changes the amplitude of the noise (directly proportional)
-//    Larger number means greater peaks/valleys, since z is the output height it scales the heightmap
-//    Scaling x,y, the inputs of interpolate changes the frequency of the noise (directly proportional)
-//    Scaling x adjusts the frequency in the x direction, increasing it traverses the noise function faster
-//    making the frequency higher and likewise with y.
 
 // Computes the normal of a vertex by averaging neighbors
 glm::vec3 TerrainGenerator::getNormal(int x, int y) {
@@ -310,11 +304,8 @@ glm::vec3 TerrainGenerator::getNormal(int x, int y) {
     return glm::normalize(sumNormals);
 }
 
-
-
 // Computes color of vertex using normal and, optionally, position
 glm::vec3 TerrainGenerator::getColor(glm::vec3 normal, glm::vec3 position) {
-    // Task 10: compute color as a function of the normal and position
     float height = 0.1;
     float vertical = 0.5;
     if (position[2]>height) {
@@ -322,10 +313,7 @@ glm::vec3 TerrainGenerator::getColor(glm::vec3 normal, glm::vec3 position) {
             return glm::vec3(1,1,1);
         }
     }
-
     return glm::vec3(0.5,0.5,0.5);
-
-
 }
 
 struct Point {
@@ -343,29 +331,21 @@ int floorInt(float x) {
 }
 // Computes the intensity of Perlin noise at some point
 float TerrainGenerator::computePerlin(float x, float y) {
-    // Task 1: get grid indices (as ints)
-
     Point p1 = {floorInt(x),floorInt(y)}; //top left
     Point p2 = {floorInt(x)+1,floorInt(y)}; //top right
     Point p3 = {floorInt(x)+1,floorInt(y)+1}; //bottom right
     Point p4 = {floorInt(x),floorInt(y)+1}; //bottom left
 
-    // Task 2: compute offset vectors
     glm::vec2 o1(x-p1.x,y-p1.y);
     glm::vec2 o2(x-p2.x,y-p2.y);
     glm::vec2 o3(x-p3.x,y-p3.y);
     glm::vec2 o4(x-p4.x,y-p4.y);
 
-    // Task 3: compute the dot product between the grid point direction vectors and its offset vectors
     float A = glm::dot(o1,sampleRandomVector(p1.x,p1.y)); // dot product between top-left direction and its offset
     float B = glm::dot(o2,sampleRandomVector(p2.x,p2.y)); // dot product between top-right direction and its offset
     float C = glm::dot(o3,sampleRandomVector(p3.x,p3.y)); // dot product between bottom-right direction and its offset
     float D = glm::dot(o4,sampleRandomVector(p4.x,p4.y)); // dot product between bottom-left direction and its offset
 
-    // Task 5: Debug this line to properly use your interpolation function to produce the correct value
     float a = interpolate(interpolate(A, B, o1[0]), interpolate(D, C, o1[0]), o1[1]);
-    return a;//interpolate(interpolate(A, B, o1[0]), interpolate(D, C, o1[0]), o1[1]);
-
-    // Return 0 as a placeholder
-    //return 0;
+    return a;
 }

@@ -20,6 +20,7 @@ private:
     std::vector<glm::vec2> m_randVecLookup;
     int m_resolution;
     int m_lookupSize;
+    std::vector<float> m_rocks;
     std::vector<glm::vec4> m_canvas;
     std::vector<float> m_heightMap;
     std::vector<float> m_noiseMap;
@@ -49,4 +50,6 @@ private:
 
     // Computes the intensity of Perlin noise at some point
     float computePerlin(float x, float y);
+
+    glm::vec3 perturbNormalWithBumpMap(glm::vec3 normal, int x, int y, const std::vector<float> &normalMapData);
 };

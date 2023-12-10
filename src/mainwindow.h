@@ -26,7 +26,7 @@ public:
     static constexpr RGBA GRASSLAND_COLOR = RGBA{0,210,0,255};
     static constexpr RGBA MOUNTAINS_COLOR = RGBA{120,120,120,255};
     static constexpr RGBA DESERT_COLOR = RGBA{240,180,0,255};
-    static constexpr RGBA OCEAN_COLOR = RGBA{0,0,180,255};
+    static constexpr RGBA OCEAN_COLOR = RGBA{0,100,255,255};
     static constexpr RGBA LAKE_COLOR = RGBA{0,100,255,255};
 
 
