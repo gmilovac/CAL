@@ -16,15 +16,12 @@ class TerrainWindow : public QWidget
 {
     Q_OBJECT
 
-
 public:
     TerrainWindow();
-    void newWidget();
+    void newWidget(bool cell);
     GLWidget *glWidget;
 
-
 private:
-
 };
 
 

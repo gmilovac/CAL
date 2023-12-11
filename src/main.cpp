@@ -21,9 +21,7 @@ int main(int argc, char *argv[])
 
     MainWindow w;
 
-    // w.resize(w.sizeHint());
     w.resize(742, 554);
-
 
     int desktopArea = QGuiApplication::primaryScreen()->size().width() *
                       QGuiApplication::primaryScreen()->size().height();

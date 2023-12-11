@@ -17,8 +17,4 @@ void main()
     color = inColor;
     lightDir = normalize(vec3(mvMatrix * vec4(1, 0, 1, 0)));
     gl_Position = projMatrix * mvMatrix * vec4(vertex, 1.0);
-
-//    posWorld = vec3(model*(vec4(posObject,1.0)));
-//    normalWorld = normalize( (inverse(transpose(mat3(model)))) * normalize(normalObject)); //
-//    gl_Position = proj*view*model*(vec4(posObject,1.0));
 }

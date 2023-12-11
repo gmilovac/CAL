@@ -22,6 +22,7 @@ void Settings::loadSettingsOrDefaults() {
     brushColor.a = s.value("brushAlpha", 255).toInt();
     brushDensity = s.value("brushDensity", 5).toInt();
     fixAlphaBlending = s.value("fixAlphaBlending", false).toBool();
+    cell = s.value("cell", false).toBool();
 
     edgeDetectSensitivity = s.value("edgeDetectSensitivity", 0.5f).toDouble();
     blurRadius = s.value("blurRadius", 10).toInt();
@@ -54,6 +55,7 @@ void Settings::saveSettings() {
     s.setValue("brushAlpha", brushColor.a);
     s.setValue("brushDensity", brushDensity);
     s.setValue("fixAlphaBlending", fixAlphaBlending);
+    s.setValue("cell", cell);
 
     s.setValue("filterType", filterType);
     s.setValue("edgeDetectSensitivity", edgeDetectSensitivity);

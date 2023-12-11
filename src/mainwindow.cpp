@@ -10,15 +10,14 @@
 
 MainWindow::~MainWindow() {}
 
-MainWindow::MainWindow()
-{
+MainWindow::MainWindow() {
     setWindowTitle("Terrain Painter");
 
     // loads in settings from last run or uses default values
     settings.loadSettingsOrDefaults();
 
-    QHBoxLayout *hLayout = new QHBoxLayout(); // horizontal layout for canvas and controls panel
-    QVBoxLayout *vLayout = new QVBoxLayout(); // vertical layout for control panel
+    QHBoxLayout * hLayout = new QHBoxLayout(); // horizontal layout for canvas and controls panel
+    QVBoxLayout * vLayout = new QVBoxLayout(); // vertical layout for control panel
 
     vLayout->setAlignment(Qt::AlignTop);
 
@@ -35,8 +34,8 @@ MainWindow::MainWindow()
     hLayout->addWidget(scrollArea, 1);
 
     // groupings by project
-    QWidget *brushGroup = new QWidget();
-    QVBoxLayout *brushLayout = new QVBoxLayout();
+    QWidget * brushGroup = new QWidget();
+    QVBoxLayout * brushLayout = new QVBoxLayout();
     brushLayout->setAlignment(Qt::AlignTop);
     brushGroup->setLayout(brushLayout);
 
@@ -54,28 +53,34 @@ MainWindow::MainWindow()
     QButtonGroup *brushButtons = new QButtonGroup();
     QButtonGroup *biomeColors = new QButtonGroup();
 
-    addRadioButton(brushButtons, brushLayout, "Constant", settings.brushType == BRUSH_CONSTANT, [this]{ setBrushType(BRUSH_CONSTANT); });
-    addRadioButton(brushButtons, brushLayout, "Fill", settings.brushType == BRUSH_FILL, [this]{setBrushType(BRUSH_FILL); });
-    addSpinBox(brushLayout, "radius", 0, 100, 1, settings.brushRadius, [this](int value){ setIntVal(settings.brushRadius, value); });
+    addRadioButton(brushButtons, brushLayout, "Constant", settings.brushType == BRUSH_CONSTANT,
+                   [this] { setBrushType(BRUSH_CONSTANT); });
+    addRadioButton(brushButtons, brushLayout, "Fill", settings.brushType == BRUSH_FILL,
+                   [this] { setBrushType(BRUSH_FILL); });
+    addSpinBox(brushLayout, "Brush Radius", 0, 100, 1, settings.brushRadius,
+               [this](int value) { setIntVal(settings.brushRadius, value); });
 
     addHeading(brushLayout, "Biomes");
-    addRadioButton(biomeColors, brushLayout, "Forest", rgbEquals(settings.brushColor,FOREST_COLOR), [this]{setBrushColor(FOREST_COLOR); });
-    addRadioButton(biomeColors, brushLayout, "Grassland", rgbEquals(settings.brushColor,GRASSLAND_COLOR), [this]{setBrushColor(GRASSLAND_COLOR); });
-    addRadioButton(biomeColors, brushLayout, "Mountain", rgbEquals(settings.brushColor,MOUNTAINS_COLOR), [this]{setBrushColor(MOUNTAINS_COLOR); });
-    addRadioButton(biomeColors, brushLayout, "Desert", rgbEquals(settings.brushColor,DESERT_COLOR), [this]{setBrushColor(DESERT_COLOR); });
-    addRadioButton(biomeColors, brushLayout, "Ocean", rgbEquals(settings.brushColor,OCEAN_COLOR), [this]{setBrushColor(OCEAN_COLOR); });
-    addRadioButton(biomeColors, brushLayout, "Lake", rgbEquals(settings.brushColor,LAKE_COLOR), [this]{setBrushColor(LAKE_COLOR); });
+    addRadioButton(biomeColors, brushLayout, "Forest", rgbEquals(settings.brushColor, FOREST_COLOR),
+                   [this] { setBrushColor(FOREST_COLOR); });
+    addRadioButton(biomeColors, brushLayout, "Grassland", rgbEquals(settings.brushColor, GRASSLAND_COLOR),
+                   [this] { setBrushColor(GRASSLAND_COLOR); });
+    addRadioButton(biomeColors, brushLayout, "Mountain", rgbEquals(settings.brushColor, MOUNTAINS_COLOR),
+                   [this] { setBrushColor(MOUNTAINS_COLOR); });
+    addRadioButton(biomeColors, brushLayout, "Desert", rgbEquals(settings.brushColor, DESERT_COLOR),
+                   [this] { setBrushColor(DESERT_COLOR); });
+    addRadioButton(biomeColors, brushLayout, "Water", rgbEquals(settings.brushColor, WATER_COLOR),
+                   [this] { setBrushColor(WATER_COLOR); });
 
-    //addRadioButton(filterLayout, "Blur", settings.filterType == FILTER_BLUR, [this]{ setFilterType(FILTER_BLUR); });
-    addSpinBox(brushLayout, "Blur Radius", 0, 100, 1, settings.blurRadius, [this](int value){ setIntVal(settings.blurRadius, value); });
+    addSpinBox(brushLayout, "Blur Radius", 0, 100, 1, settings.blurRadius,
+               [this](int value) { setIntVal(settings.blurRadius, value); });
+
+    addCheckBox(brushLayout, "Toon Shading", settings.cell, [this](bool value){ setBoolVal(settings.cell, value); });
 
     addPushButton(brushLayout, "Generate Terrain", &MainWindow::onGenerateTerrainButtonClick);
     addPushButton(brushLayout, "Clear canvas", &MainWindow::onClearButtonClick);
+    addPushButton(brushLayout, "Upload Image", &MainWindow::onUploadButtonClick);
     addPushButton(brushLayout, "Save Image", &MainWindow::onSaveButtonClick);
-    addPushButton(brushLayout, "Load Image", &MainWindow::onUploadButtonClick);
-    addPushButton(brushLayout, "Noise Map", &MainWindow::onNoiseMapClick);
-    addPushButton(brushLayout, "Height Map", &MainWindow::onHeightMapClick);
-    addPushButton(brushLayout, "Blur", &MainWindow::onBlurClick);
 }
 
 /**
@@ -89,7 +94,6 @@ void MainWindow::setupCanvas2D() {
         m_canvas->loadImageFromFile(settings.imagePath);
     }
 }
-
 
 // ------ FUNCTIONS FOR ADDING UI COMPONENTS ------
 
@@ -129,6 +133,13 @@ void MainWindow::addSpinBox(QBoxLayout *layout, QString text, int min, int max, 
             this, function);
 }
 
+void MainWindow::addCheckBox(QBoxLayout *layout, QString text, bool val, auto function) {
+    QCheckBox *box = new QCheckBox(text);
+    box->setChecked(val);
+    layout->addWidget(box);
+    connect(box, &QCheckBox::clicked, this, function);
+}
+
 void MainWindow::addPushButton(QBoxLayout *layout, QString text, auto function) {
     QPushButton *button = new QPushButton(text);
     layout->addWidget(button);
@@ -147,6 +158,11 @@ void MainWindow::setBrushColor(RGBA color) {
     m_canvas->settingsChanged();
 }
 
+void MainWindow::setBoolVal(bool &setValue, bool newValue) {
+    setValue = newValue;
+    m_canvas->settingsChanged();
+}
+
 void MainWindow::setIntVal(int &setValue, int newValue) {
     setValue = newValue;
     m_canvas->settingsChanged();
@@ -159,7 +175,7 @@ void MainWindow::onGenerateTerrainButtonClick() {
     std::vector<float> noiseData = m_canvas->blurImage(m_canvas->getNoiseMap());
     std::vector<float> heightData = m_canvas->blurImage(m_canvas->getHeightMap());
     m_terrainWindow = new TerrainWindow();
-    m_terrainWindow->newWidget();
+    m_terrainWindow->newWidget(settings.cell);
     m_terrainWindow->glWidget->renderTerrain(canvasData,noiseData,heightData);
     m_terrainWindow->resize(800,600);
     m_terrainWindow->show();
@@ -177,20 +193,7 @@ void MainWindow::onUploadButtonClick() {
 
     // Display new image
     m_canvas->loadImageFromFile(settings.imagePath);
-
     m_canvas->settingsChanged();
-}
-
-void MainWindow::onBlurClick() {
-   // m_canvas->blurImage(m_canvas->data);
-
-}
-void MainWindow::onHeightMapClick() {
-    m_canvas->blurImage(m_canvas->getHeightMap());
-}
-void MainWindow::onNoiseMapClick() {
-    m_canvas->blurImage(m_canvas->getNoiseMap());
-
 }
 
 bool MainWindow::rgbEquals(RGBA x, RGBA y) {

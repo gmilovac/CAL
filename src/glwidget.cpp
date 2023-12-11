@@ -12,7 +12,6 @@
 GLWidget::GLWidget(QWidget *parent)
     : QOpenGLWidget(parent), m_angleX(0), m_angleY(0), m_zoom(1.0)
 {
-    //setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
 
     m_keyMap[Qt::Key_W]       = false;
@@ -42,6 +41,21 @@ void GLWidget::initializeGL()
 
     m_projMatrixLoc = m_program->uniformLocation("projMatrix");
     m_mvMatrixLoc = m_program->uniformLocation("mvMatrix");
+
+//    BUMP MAPPING ATTEMPT
+//    QString rock_filepath = QString(":/src/bumpMap/rock.png");
+//    QImage rock_image = QImage(rock_filepath);
+//    rock_image = rock_image.convertToFormat(QImage::Format_RGBA8888).mirrored();
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, m_rock_texture);
+//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rock_image.width(), rock_image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, rock_image.bits());
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//    glBindTexture(GL_TEXTURE_2D, 0);
+//    glUseProgram(m_program->programId());
+//    GLuint textureUniform = glGetUniformLocation(m_program->programId(), "textureSampler");
+//    glUniform1i(textureUniform, 0);
+//    glUseProgram(0);
 
     m_terrainVao.create();
     m_terrainVao.bind();
@@ -73,16 +87,16 @@ void GLWidget::initializeGL()
     m_world.setToIdentity();
     m_world.translate(QVector3D(-0.5,-0.5,0));
 
-
-
     m_cameraPos = QVector3D(1.f,1.f,1.f);
     m_cameraLook = QVector3D(0.1f,0.1f,0.1f);
     m_cameraUp = QVector3D(0.f,0.f,0.1f);
-    //camera = Camera(m_cameraPos,m_cameraLook,m_cameraUp, width() / height(), 45.0f, 100.0f, 0.01f);
     m_camera.lookAt(m_cameraPos,m_cameraLook,m_cameraUp);
 
-
     m_program->release();
+}
+
+void GLWidget::setCell(bool cell) {
+    m_cell = cell;
 }
 
 void GLWidget::paintGL()
@@ -94,12 +108,19 @@ void GLWidget::paintGL()
     m_program->setUniformValue(m_projMatrixLoc, m_proj);
     m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
     m_program->setUniformValue(m_program->uniformLocation("wireshade"),m_terrain.m_wireshade);
-    //m_program->setUniformValue(m_program->uniformLocation("bump"),bump);
+    m_program->setUniformValue(m_program->uniformLocation("cell"),m_cell);
 
     int res = m_terrain.getResolution();
 
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, m_rock_texture);
+
     glPolygonMode(GL_FRONT_AND_BACK,m_terrain.m_wireshade? GL_LINE : GL_FILL);
     glDrawArrays(GL_TRIANGLES, 0, res * res * 6);
+
+//    glBindTexture(GL_TEXTURE_2D, 0);
+//    glBindVertexArray(0);
+//    glUseProgram(0);
 
     m_program->release();
 }

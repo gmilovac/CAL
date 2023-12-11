@@ -6,33 +6,16 @@
 #include "rgba.h"
 #include "mainwindow.h"
 
-std::vector<float> generateRockNormalMap(int width, int height) {
-    std::vector<float> normalMap;
-    normalMap.reserve(width * height * 3);  // Each texel has three components (x, y, z) for the normal vector
-
-    // Generate a simple normal map for rocks (e.g., all normals pointing upward)
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            // In this example, all normals are pointing upward (positive Z-axis)
-            normalMap.push_back(0.0f);  // x-component
-            normalMap.push_back(0.0f);  // y-component
-            normalMap.push_back(1.0f);  // z-component
-        }
-    }
-
-    return normalMap;
-}
-
 // Constructor
 TerrainGenerator::TerrainGenerator()
 {
   m_wireshade = false; // STENCIL CODE
+  cell = cell;
 
   // Define resolution of terrain generation
   m_resolution = 512;
   m_heightMap.reserve(m_resolution*m_resolution);
   m_noiseMap.reserve(m_resolution*m_resolution);
-  m_rocks = generateRockNormalMap(m_resolution, m_resolution);
 
     // Generate random vector lookup table
   m_lookupSize = 1024;
@@ -60,13 +43,6 @@ void addPointToVector(glm::vec3 point, std::vector<float>& vector) {
     vector.push_back(point.x);
     vector.push_back(point.y);
     vector.push_back(point.z);
-}
-
-glm::vec3 TerrainGenerator::perturbNormalWithBumpMap(glm::vec3 normal, int x, int y, const std::vector<float>& normalMapData) {
-    // Assuming normalMapData is a linear array representing the normal map
-    float intensity = normalMapData[x + y * m_resolution];
-    // Perturb the normal based on the intensity
-    return normalize(normal + intensity * (normal - glm::vec3(0.5, 0.5, 0.5)));
 }
 
 // Generates the geometry of the output triangle mesh
@@ -103,16 +79,12 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
             glm::vec4 c1 = canvas[col1+row1*m_resolution];
             if (c1.x==1.f && c1.y==1.f && c1.z==1.f) {continue;}
 
-//            glm::vec3 p0 = getPosition(x1,y1,heightData[col1+row1*m_resolution], noiseData[col1+row1*m_resolution]);
-//            glm::vec3 p1 = getPosition(x2,y1,heightData[col2+row1*m_resolution], noiseData[col2+row1*m_resolution]);
-//            glm::vec3 p2 = getPosition(x2,y2,heightData[col2+row2*m_resolution], noiseData[col2+row2*m_resolution]);
-//            glm::vec3 p3 = getPosition(x1,y2,heightData[col1+row2*m_resolution], noiseData[col1+row2*m_resolution]); // IN X,Z,Y format or (vec2 coordinate, height) format
             glm::vec3 p0 = getPosition(x1,y1);
             glm::vec3 p1 = getPosition(x2,y1);
             glm::vec3 p2 = getPosition(x2,y2);
             glm::vec3 p3 = getPosition(x1,y2);
 
-            if (rgbEquals(c1,MainWindow::OCEAN_COLOR)) {
+            if (rgbEquals(c1,MainWindow::WATER_COLOR)) {
                 float oceanThreshold = 0.01f;
                 if (p1.z > oceanThreshold || p2.z > oceanThreshold || p3.z > oceanThreshold || p0.z > oceanThreshold) {
                     c1 = glm::vec4(0.988f,0.776f,0.376f,1.f); // sand color
@@ -129,23 +101,10 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
                 c1 = glm::vec4(1.f,1.f,1.f,1.f); // snow color
             }
 
-
-
             glm::vec3 n0 = getNormal(x1,y1);
             glm::vec3 n1 = getNormal(x2,y1);
             glm::vec3 n2 = getNormal(x2,y2);
             glm::vec3 n3 = getNormal(x1,y2);
-//            glm::vec3 n0 = getNormal(x1,y1,heightData[col1+row1*m_resolution], noiseData[col1+row1*m_resolution]);
-//            glm::vec3 n1 = getNormal(x2,y1,heightData[col2+row1*m_resolution], noiseData[col2+row1*m_resolution]);
-//            glm::vec3 n2 = getNormal(x2,y2,heightData[col2+row2*m_resolution], noiseData[col2+row2*m_resolution]);
-//            glm::vec3 n3 = getNormal(x1,y2,heightData[col1+row2*m_resolution], noiseData[col1+row2*m_resolution]);
-
-//            if (rgbEquals(c1, MainWindow::MOUNTAINS_COLOR)) {
-//                n0 = perturbNormalWithBumpMap(n0, x, y, m_rocks);
-//                n1 = perturbNormalWithBumpMap(n1, x, y, m_rocks);
-//                n2 = perturbNormalWithBumpMap(n2, x, y, m_rocks);
-//                n3 = perturbNormalWithBumpMap(n3, x, y, m_rocks);
-//            }
 
             addPointToVector(p0, verts);
             addPointToVector(n0, verts);
@@ -196,12 +155,9 @@ glm::vec3 TerrainGenerator::getPosition(int xIn, int yIn) {
     float noise = getNoiseMap(x0,y0);
     float x = 1.0 * xIn / m_resolution;
     float y = 1.0 * yIn / m_resolution;
-    //std::cout << m_canvas[pixel].x;
     float z = abs(getHeight(x, y, height, noise)); //Don't let it go below zero
     return glm::vec3(x,y,z);
 }
-
-// ================== Students, please focus on the code below this point
 
 bool TerrainGenerator::rgbEquals(glm::vec4 colVec4, RGBA rgba) {
     if (fToUint(colVec4[0]) == rgba.r){
@@ -233,7 +189,6 @@ float ease(float alpha) {
 
 // Helper for computePerlin() and, possibly, getColor()
 float interpolate(float A, float B, float alpha) {
-    // Task 4: implement your easing/interpolation function below
     return A + ease(alpha)*(B-A);
 }
 
@@ -248,38 +203,11 @@ float TerrainGenerator::getHeight(float x, float y, float height, float noise) {
     float z4 = computePerlin(x*8,y*8)/8;
     float z5 = computePerlin(x*16,y*16)/16;
 
-    // Return 0 as placeholder
-    //
     return height+noise*(z1+z2+z3+z4+z5);
-
-
 }
 
 // Computes the normal of a vertex by averaging neighbors
 glm::vec3 TerrainGenerator::getNormal(int x, int y) {
-    //glm::vec3 tl, glm::vec3 tm, glm::vec3 tr,
-    //glm::vec3 ml, glm::vec3 mm, glm::vec3 mr,
-    //   glm::vec3 bl, glm::vec3 bm, glm::vec3 br
-    // Task 9: Compute the average normal for the given input indices
-//    int x1 = x;
-//    int y1 = y;
-//    int x2 = x + 1;
-//    int y2 = y + 1;
-
-//    int row0 = row;
-//    int col0 = col; // flips horizontally - images coming out mirrored before
-//    int row1 = std::clamp((row-1), 0, m_resolution-1);
-//    int col1 = std::clamp((col+1), 0, m_resolution-1);
-//    int rowm1 = std::clamp((row+1), 0, m_resolution-1);
-//    int colm1 = std::clamp((col-1), 0, m_resolution-1);
-
-//    int row0 = row;//std::clamp((m_resolution-1) - y,0,m_resolution-1);
-//    int col0 = col;//(m_resolution-1) - x; // flips horizontally - images coming out mirrored before
-//    int row1 = row0;
-//    int col1 = col0;
-//    int rowm1 = row0;
-//    int colm1 = col0;
-
 
     glm::vec3 mm = getPosition(x, y);
     glm::vec3 sumNormals(0.f,0.f,0.f);

@@ -41,8 +41,6 @@ add_executable(${PROJECT_NAME}
 
         src/terrainwindow.h
         src/terrainwindow.cpp
-        src/camera/camera.cpp
-        src/camera/camera.h
 )
 
 # Specifies other files

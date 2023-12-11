@@ -31,6 +31,7 @@ struct Settings {
     RGBA brushColor;
     int brushDensity; // This is for spray brush (extra credit)
     bool fixAlphaBlending; // Fix alpha blending (extra credit)
+    bool cell;
 
     // Filter
     int filterType;                     // The selected filter @see FilterType

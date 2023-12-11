@@ -7,12 +7,12 @@ TerrainWindow::TerrainWindow()
 {
 }
 
-void TerrainWindow::newWidget() {
+void TerrainWindow::newWidget(bool cell) {
         QHBoxLayout *container = new QHBoxLayout;
 
         glWidget = new GLWidget();
+        glWidget->setCell(cell);
         container->addWidget(glWidget);
-
         this->setLayout(container);
 }
 

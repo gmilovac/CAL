@@ -86,20 +86,6 @@ void Canvas2D::displayImage() {
     update();
 }
 
-
-
-///**
-// * @brief Canvas2D::resize resizes canvas to new width and height
-// * @param w
-// * @param h
-// */
-//void Canvas2D::resize(int w, int h) {
-//    m_width = w;
-//    m_height = h;
-//    m_data.resize(w * h);
-//    displayImage();
-//}
-
 /**
  * @brief Called when any of the parameters in the UI are modified.
  */
@@ -144,14 +130,6 @@ std::vector<float> Canvas2D::blurImage(std::vector<float> input) {
     std::vector<float> tblur = createGausianKernel(settings.blurRadius);
     std::vector<float> output(input.size());
     output = convolve(input,m_width,m_height,tblur,tblur);
-//    for (int i=0; i<input.size(); i++) {
-//    m_data[i].r = fToInt(255.f*output[i]);
-//    m_data[i].g = fToInt(255.f*output[i]);
-//    m_data[i].b = fToInt(255.f*output[i]);
-//    m_data[i].a = 255;
-//    }
-
-   // displayImage();
     return output;
 }
 
@@ -162,7 +140,7 @@ std::vector<float> Canvas2D::createGausianKernel(int r) {
     for (int i=0;i<=r;i++) {
     float x = r - i;
     k[i] = (1/(sqrt(2*M_PI*pow(sd,2))))*(exp(-(pow(x,2))/(2*pow(sd,2))));
-    k[size-i-1]=k[i]; // makes distribution symetrical
+    k[size-i-1]=k[i]; // makes distribution symmetrical
     }
     //normalize kernel
     float sum = 0.0f;
@@ -178,65 +156,52 @@ std::vector<float> Canvas2D::createGausianKernel(int r) {
 std::vector<float> Canvas2D::getHeightMap() {
     std::vector<float> heightMap(m_data.size());
     for (int i=0; i<heightMap.size(); i++) {
-    RGBA color = m_data[i];
-    if (rgbEquals(color, MainWindow::MOUNTAINS_COLOR)) {
-        heightMap[i] = 0.2f;
+        RGBA color = m_data[i];
+        if (rgbEquals(color, MainWindow::MOUNTAINS_COLOR)) {
+            heightMap[i] = 0.2f;
+        }
+        else if (rgbEquals(color, MainWindow::FOREST_COLOR)) {
+            heightMap[i] = 0.1f;
+        }
+        else if (rgbEquals(color, MainWindow::GRASSLAND_COLOR)) {
+            heightMap[i] = 0.07f;
+        }
+        else if (rgbEquals(color, MainWindow::DESERT_COLOR)) {
+            heightMap[i] = 0.05f;
+        }
+        else if (rgbEquals(color, MainWindow::WATER_COLOR)) {
+            heightMap[i] = 0.0f;
+        }
+        else {
+            heightMap[i] = 0.0f;
+        }
     }
-    else if (rgbEquals(color, MainWindow::FOREST_COLOR)) {
-        heightMap[i] = 0.1f;
-    }
-    else if (rgbEquals(color, MainWindow::GRASSLAND_COLOR)) {
-        heightMap[i] = 0.07f;
-    }
-    else if (rgbEquals(color, MainWindow::DESERT_COLOR)) {
-        heightMap[i] = 0.05f;
-    }
-    else if (rgbEquals(color, MainWindow::LAKE_COLOR)) {
-        heightMap[i] = 0.0f;
-    }
-    else if (rgbEquals(color, MainWindow::OCEAN_COLOR)) {
-        heightMap[i] = 0.0f;
-    }
-    else {
-        heightMap[i] = 0.0f;
-    }
-
-    //m_data[i] = RGBA{fToInt(heightMap[i]*255.f),fToInt(heightMap[i]*255.f),fToInt(heightMap[i]*255.f),255};
-    }
-
     return heightMap;
-    //displayImage();
-
 }
+
 std::vector<float> Canvas2D::getNoiseMap() {
     std::vector<float> noiseMap(m_data.size());
     for (int i=0; i<noiseMap.size(); i++) {
-    RGBA color = m_data[i];
-    if (rgbEquals(color, MainWindow::MOUNTAINS_COLOR)) {
-        noiseMap[i] = 0.8f;
+        RGBA color = m_data[i];
+        if (rgbEquals(color, MainWindow::MOUNTAINS_COLOR)) {
+            noiseMap[i] = 0.8f;
+        }
+        else if (rgbEquals(color, MainWindow::FOREST_COLOR)) {
+            noiseMap[i] = 0.2f;
+        }
+        else if (rgbEquals(color, MainWindow::GRASSLAND_COLOR)) {
+            noiseMap[i] = 0.1f;
+        }
+        else if (rgbEquals(color, MainWindow::DESERT_COLOR)) {
+            noiseMap[i] = 0.1f;
+        }
+        else if (rgbEquals(color, MainWindow::WATER_COLOR)) {
+            noiseMap[i] = 0.0f;
+        }
+        else {
+            noiseMap[i] = 0.0f;
+        }
     }
-    else if (rgbEquals(color, MainWindow::FOREST_COLOR)) {
-        noiseMap[i] = 0.2f;
-    }
-    else if (rgbEquals(color, MainWindow::GRASSLAND_COLOR)) {
-        noiseMap[i] = 0.1f;
-    }
-    else if (rgbEquals(color, MainWindow::DESERT_COLOR)) {
-        noiseMap[i] = 0.1f;
-    }
-    else if (rgbEquals(color, MainWindow::LAKE_COLOR)) {
-        noiseMap[i] = 0.0f;
-    }
-    else if (rgbEquals(color, MainWindow::OCEAN_COLOR)) {
-        noiseMap[i] = 0.f;
-    }
-    else {
-        noiseMap[i] = 0.0f;
-    }
-
-    //m_data[i] = RGBA{fToInt(noiseMap[i]*255.f),fToInt(noiseMap[i]*255.f),fToInt(noiseMap[i]*255.f),255};
-    }
-    //displayImage();
     return noiseMap;
 }
 
@@ -248,45 +213,34 @@ std::vector<float> Canvas2D::convolve(std::vector<float> &data, int width, int h
     std::vector<float> resultX(imageSize); // must be doubles to maintain accuracy
 
     for (int row=0;row < height; row++) { // horizontal convolution
-    for (int col=0;col<width;col++) {
+        for (int col=0;col<width;col++) {
 
-        float acc = 0.0;
-//        float greenAcc = 0.0;
-//        float blueAcc = 0.0;
+            float acc = 0.0;
 
-        for (int i = (xk.size()-1);i>=0;i--) { // flips kernel
+            for (int i = (xk.size()-1);i>=0;i--) { // flips kernel
 
-            int newX = col + (i - (xk.size()-1)/2);
-            float pixel = (getPixelRepeated(data,width,height,newX,row));
-            acc += pixel*xk[i];
-//            greenAcc += pixel.g*xk[i];
-//            blueAcc += pixel.b*xk[i];
-        }
-
-        resultX.at(width*row+col) = acc;
-    }                           //  Stores as doubleRGBA vector to maintain accuracy between convolutions
+                int newX = col + (i - (xk.size()-1)/2);
+                float pixel = (getPixelRepeated(data,width,height,newX,row));
+                acc += pixel*xk[i];
+            }
+            resultX.at(width*row+col) = acc;
+        } //  Stores as doubleRGBA vector to maintain accuracy between convolutions
     }
 
     for (int row=0;row < height; row++) { // vertical convolution
-    for (int col=0;col<width;col++) {
+        for (int col=0;col<width;col++) {
 
-        float acc = 0.0;
-//        float greenAcc = 0.0;
-//        float blueAcc = 0.0;
+            float acc = 0.0;
 
-        for (int i = (yk.size()-1);i>=0;i--) { // flips kernel
+            for (int i = (yk.size()-1);i>=0;i--) { // flips kernel
 
-            int newY = row + (i - (yk.size()-1)/2);
-            float pixel = getPixelRepeated(resultX,width,height,col,newY);
-            acc += pixel*yk[i];
-//            greenAcc += pixel.g*yk[i];
-//            blueAcc += pixel.b*yk[i];
+                int newY = row + (i - (yk.size()-1)/2);
+                float pixel = getPixelRepeated(resultX,width,height,col,newY);
+                acc += pixel*yk[i];
+            }
+            result.at(width*row+col) = acc;
         }
-
-        result.at(width*row+col) = acc;
     }
-    }
-
     return result;
 }
 

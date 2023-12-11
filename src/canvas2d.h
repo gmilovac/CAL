@@ -59,10 +59,6 @@ private:
     int posToIndex(int x,int y);
     void blendColor(RGBA brushColor, int x, int y, int i);
 
-    // These are functions overriden from QWidget that we've provided
-    // to prevent you from having to interact with Qt's mouse events.
-    // These will pass the mouse coordinates to the above mouse functions
-    // that you will have to fill in.
     virtual void mousePressEvent(QMouseEvent* event) override {
         auto [x, y] = std::array{ event->position().x(), event->position().y() };
         mouseDown(static_cast<int>(x), static_cast<int>(y));
