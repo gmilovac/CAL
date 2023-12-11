@@ -20,6 +20,7 @@ GLWidget::GLWidget(QWidget *parent)
     m_keyMap[Qt::Key_D]       = false;
     m_keyMap[Qt::Key_Control] = false;
     m_keyMap[Qt::Key_Space]   = false;
+    m_keyMap[Qt::Key_T]   = false;
 }
 
 GLWidget::~GLWidget() {}
@@ -133,6 +134,10 @@ void GLWidget::resizeGL(int w, int h)
 
 void GLWidget::keyPressEvent(QKeyEvent *event) {
     m_keyMap[Qt::Key(event->key())] = true;
+    if (m_keyMap[Qt::Key_T]){
+        m_cell = !m_cell;
+        paintGL();
+    }
 }
 
 void GLWidget::keyReleaseEvent(QKeyEvent *event) {
@@ -163,6 +168,7 @@ void GLWidget::timerEvent(QTimerEvent *event) {
     if (m_keyMap[Qt::Key_Space]){
         m_world.translate(-deltaTime * QVector3D(0.f, 0.f, 0.2f));
     }
+
     rebuildMatrices();
 }
 
