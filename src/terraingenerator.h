@@ -21,11 +21,7 @@ private:
     std::vector<glm::vec2> m_randVecLookup;
     int m_resolution;
     int m_lookupSize;
-    std::vector<glm::vec4> m_canvas;
-    std::vector<float> m_heightMap;
-    std::vector<float> m_noiseMap;
-    float getHeightMap(int x, int y);
-    float getNoiseMap(int x, int y);
+    std::vector<float> m_heights;
     uint8_t fToUint(float x);
     bool rgbEquals(glm::vec4 colVec4, RGBA rgba);
 
@@ -34,19 +30,13 @@ private:
 
     // Takes a grid coordinate (row, col), [0, m_resolution), which describes a vertex in a plane mesh
     // Returns a normalized position (x, y, z); x and y in range from [0, 1), and z is obtained from getHeight()
-    glm::vec3 getPosition(int row, int col);
+    glm::vec3 getPosition(int xIn, int yIn);
+    void storeHeightPositions(int xIn, int yIn, float height, float noise);
 
-    // ================== Students, please focus on the code below this point
-
-    // Takes a normalized (x, y) position, in range [0,1)
-    // Returns a height value, z, by sampling a noise function
     float getHeight(float x, float y, float height, float noise);
 
     // Computes the normal of a vertex by averaging neighbors
     glm::vec3 getNormal(int y, int x);
-
-    // Computes color of vertex using normal and, optionally, position
-    glm::vec3 getColor(glm::vec3 normal, glm::vec3 position);
 
     // Computes the intensity of Perlin noise at some point
     float computePerlin(float x, float y);

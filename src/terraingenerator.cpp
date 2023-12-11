@@ -14,8 +14,7 @@ TerrainGenerator::TerrainGenerator()
 
   // Define resolution of terrain generation
   m_resolution = 512;
-  m_heightMap.reserve(m_resolution*m_resolution);
-  m_noiseMap.reserve(m_resolution*m_resolution);
+
 
     // Generate random vector lookup table
   m_lookupSize = 1024;
@@ -47,19 +46,18 @@ void addPointToVector(glm::vec3 point, std::vector<float>& vector) {
 
 // Generates the geometry of the output triangle mesh
 std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canvas,  std::vector<float> noiseData, std::vector<float> heightData) {
-    m_canvas = canvas;
     std::vector<float> verts;
     m_resolution = 512; //int(sqrt(flat.size()));
     verts.reserve(m_resolution * m_resolution * 6);
+    m_heights.reserve(m_resolution * m_resolution);
 
-
+    // Stores height positions for each x,y coordinate to increase efficiency during normal calculations
     for (int x=0; x<m_resolution; x++) {
-    for (int y=0; y<m_resolution; y++) {
-        int row = y;
-        int col = (m_resolution-1) - x;
-        m_heightMap[x+y*m_resolution] = heightData[col+row*m_resolution];
-        m_noiseMap[x+y*m_resolution] = noiseData[col+row*m_resolution];
-    }
+        for (int y=0; y<m_resolution; y++) {
+            int row = y;
+            int col = (m_resolution-1) - x;
+            storeHeightPositions(x,y, heightData[col+row*m_resolution], noiseData[col+row*m_resolution]);
+        }
     }
 
     for(int x = 0; x < m_resolution; x++) {
@@ -137,26 +135,28 @@ std::vector<float> TerrainGenerator::generateTerrain(std::vector<glm::vec4> canv
 }
 
 // Samples the (infinite) random vector grid at (row, col)
-glm::vec2 TerrainGenerator::sampleRandomVector(int row, int col)
-{
+glm::vec2 TerrainGenerator::sampleRandomVector(int row, int col) {
     std::hash<int> intHash;
     int index = intHash(row * 41 + col * 43) % m_lookupSize;
     return m_randVecLookup.at(index);
 }
 
-// Takes a grid coordinate (row, col), [0, m_resolution), which describes a vertex in a plane mesh
-// Returns a normalized position (x, y, z); x and y in range from [0, 1), and z is obtained from getHeight()
+// Stores the height value (float) for each x,y coordinate
+void TerrainGenerator::storeHeightPositions(int xIn, int yIn, float height, float noise) {
+    float x = 1.f * xIn / m_resolution;
+    float y = 1.f * yIn / m_resolution;
+    m_heights[xIn+yIn*m_resolution] = abs(getHeight(x, y, height, noise));
+}
+
+// Gets positon x,y,h and returns as vec3
 glm::vec3 TerrainGenerator::getPosition(int xIn, int yIn) {
-    // Normalizing the planar coordinates to a unit square
-    // makes scaling independent of sampling resolution.
     int x0 = std::clamp(xIn, 0, m_resolution-1);
     int y0 = std::clamp(yIn, 0, m_resolution-1);
-    float height = getHeightMap(x0, y0);
-    float noise = getNoiseMap(x0,y0);
-    float x = 1.0 * xIn / m_resolution;
-    float y = 1.0 * yIn / m_resolution;
-    float z = abs(getHeight(x, y, height, noise)); //Don't let it go below zero
-    return glm::vec3(x,y,z);
+
+    float x = 1.f * xIn / m_resolution;
+    float y = 1.f * yIn / m_resolution;
+    float h = m_heights[x0+y0*m_resolution];
+    return glm::vec3(x,y,h);
 }
 
 bool TerrainGenerator::rgbEquals(glm::vec4 colVec4, RGBA rgba) {
@@ -173,14 +173,6 @@ bool TerrainGenerator::rgbEquals(glm::vec4 colVec4, RGBA rgba) {
 uint8_t TerrainGenerator::fToUint(float x) {
     int a = int(round(x*255.f));
     return std::min(std::max(a,0),255);
-}
-
-float TerrainGenerator::getHeightMap(int x, int y) {
-    return m_heightMap[x+y*m_resolution];
-}
-
-float TerrainGenerator::getNoiseMap(int x, int y) {
-    return m_noiseMap[x+y*m_resolution];
 }
 
 float ease(float alpha) {
@@ -210,16 +202,16 @@ float TerrainGenerator::getHeight(float x, float y, float height, float noise) {
 glm::vec3 TerrainGenerator::getNormal(int x, int y) {
 
     glm::vec3 mm = getPosition(x, y);
-    glm::vec3 sumNormals(0.f,0.f,0.f);
+    glm::vec3 sumNormals(0.f,0.f,0.f); // center vertex
 
-    glm::vec3 tl = getPosition(x - 1, y - 1);
-    glm::vec3 ml = getPosition(x + 0, y - 1);
-    glm::vec3 bl = getPosition(x + 1, y - 1);
-    glm::vec3 bm = getPosition(x + 1, y - 0);
-    glm::vec3 br = getPosition(x + 1, y + 1);
-    glm::vec3 mr = getPosition(x + 0, y + 1);
-    glm::vec3 tr = getPosition(x - 1, y + 1);
-    glm::vec3 tm = getPosition(x - 1, y - 0);
+    glm::vec3 tl = getPosition(x - 1, y - 1); //top left
+    glm::vec3 ml = getPosition(x + 0, y - 1); //mid left
+    glm::vec3 bl = getPosition(x + 1, y - 1); // bottom left
+    glm::vec3 bm = getPosition(x + 1, y - 0); // bottom mid
+    glm::vec3 br = getPosition(x + 1, y + 1); // bottom right
+    glm::vec3 mr = getPosition(x + 0, y + 1); // mid right
+    glm::vec3 tr = getPosition(x - 1, y + 1); // top right
+    glm::vec3 tm = getPosition(x - 1, y - 0); // top mid
 
     sumNormals = sumNormals + glm::cross(tl-mm,ml-mm);
     sumNormals = sumNormals + glm::cross(ml-mm,bl-mm);
@@ -230,18 +222,6 @@ glm::vec3 TerrainGenerator::getNormal(int x, int y) {
     sumNormals = sumNormals + glm::cross(tr-mm,tm-mm);
     sumNormals = sumNormals + glm::cross(tm-mm,tl-mm);
     return glm::normalize(sumNormals);
-}
-
-// Computes color of vertex using normal and, optionally, position
-glm::vec3 TerrainGenerator::getColor(glm::vec3 normal, glm::vec3 position) {
-    float height = 0.1;
-    float vertical = 0.5;
-    if (position[2]>height) {
-        if (glm::dot(normal,glm::vec3(0,0,1)) > vertical) {
-            return glm::vec3(1,1,1);
-        }
-    }
-    return glm::vec3(0.5,0.5,0.5);
 }
 
 struct Point {

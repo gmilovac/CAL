@@ -7,6 +7,7 @@
 #include <QScrollArea>
 #include <iostream>
 #include <QButtonGroup>
+#include <ostream>
 
 MainWindow::~MainWindow() {}
 
@@ -187,7 +188,8 @@ void MainWindow::onClearButtonClick() {
 
 void MainWindow::onUploadButtonClick() {
     // Get new image path selected by user
-    QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), QDir::currentPath(), tr("Image Files (*.png *.jpg *.jpeg)"));
+    //std::cout << std::to_string(QDir::currentPath());
+    QString file = QFileDialog::getOpenFileName(this, tr("Open Image"), "examples", tr("Image Files (*.png *.jpg *.jpeg)"));
     if (file.isEmpty()) { return; }
     settings.imagePath = file;
 
