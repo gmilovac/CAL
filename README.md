@@ -16,6 +16,9 @@ This project is an OpenGL application that allows users to customise and generat
 **Github repo:**<br />
 [https://github.com/gmilovac/CAL]
 
+**Demo video:**<br />
+[https://youtu.be/RRnJ7wooko4]
+
 ## Project Description
 
 This project is a final project for CS1230: Introduction to Computer Graphics at Brown University. It uses OpenGL and many concepts and ideas covered in the course. Most od the code is written in C++. The project is split into two parts, the first part is a canvas where user gets to draw an image of their terrain (similar to the Raster Project) and the second part is the terrain generation (similar to the Terrain Lab) which implements some new concepts such as Noise maps, Height maps and Toon Shading.
